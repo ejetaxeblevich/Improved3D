@@ -113,8 +113,8 @@
 --
 -- lua
 -- [[
---     i3d = require("data\\gamedata\\lua_lib\\improved3d.lua")
---     if not i3d then
+--     I3D = require("data\\gamedata\\lua_lib\\improved3d.lua")
+--     if not I3D then
 --         LOG("[E] Could not find global Improved3D.lua...")
 --     end
 -- ]]
@@ -144,7 +144,7 @@
 --    {
 --       /* Расширенное манипулирование 3D пространством */
 --       [M] Quaternion SetObjectLookAt( object SetAim, object GetAim, bool OnlyYaw, bool LockRoll )  /* Обращает взор первого объекта на позицию второго объекта - как аим камеры в катсценах. Для плавной работы необходимо вызывать каждый раз: objSetAim = объект, который нужно повернуть; objGetAim = объект или позиция, на которую надо "смотреть": может быть getObj(), CVector(), GetCameraPos(); boolOnlyYaw = применяется вращение только по оси Y (как турель), если true; boolLockRoll = запрещается вращение по оси Z (наклон), если true. Примеры: SetObjectLookAt(getObj("aim_object_name"), GetPlayerVehicle(), false, true) --> Аим на объект; SetObjectLookAt(getObj("aim_object_name"), GetCameraPos(), false, true) --> Аим на камеру */
---       [M] void IsCameraLookAt( float DrawVectorQuant, float DrawVectorQuantMultiplier, float DrawVectorMinDistance, float DrawVectorMaxDistance, float DrawCatchZoneSize )        /* Смотрит ли куда-то камера? Бросает луч из камеры и пытается что-то "нащупать" (работает с триггером "IsCameraLookAt_VectorDrawer" или с IsCameraLookAt_VectorDrawer_f()): float DrawVectorQuant = шаг построения отрезка луча (в метрах); float DrawVectorQuantMultiplier = множитель шага построения отрезка луча (1.0); float DrawVectorMinDistance = минимальное расстояние, после которого идет захват объекта лучом (в метрах); float DrawVectorMaxDistance		= максимальное расстояние захвата объектов лучом (в метрах); float DrawCatchZoneSize = размер зоны захвата объектов в точке луча (в метрах); Пример: i3d:IsCameraLookAt(5,1,20,1000,5) */
+--       [M] void IsCameraLookAt( float DrawVectorQuant, float DrawVectorQuantMultiplier, float DrawVectorMinDistance, float DrawVectorMaxDistance, float DrawCatchZoneSize )        /* Смотрит ли куда-то камера? Бросает луч из камеры и пытается что-то "нащупать" (работает с триггером "IsCameraLookAt_VectorDrawer" или с IsCameraLookAt_VectorDrawer_f()): float DrawVectorQuant = шаг построения отрезка луча (в метрах); float DrawVectorQuantMultiplier = множитель шага построения отрезка луча (1.0); float DrawVectorMinDistance = минимальное расстояние, после которого идет захват объекта лучом (в метрах); float DrawVectorMaxDistance		= максимальное расстояние захвата объектов лучом (в метрах); float DrawCatchZoneSize = размер зоны захвата объектов в точке луча (в метрах); Пример: I3D:IsCameraLookAt(5,1,20,1000,5) */
 --       [M] ??? IsCameraLookAt_Callback( CVector pos, Object entity )       /* Настраивается пользователем. Эта callback-функция вызывается GetCameraLookAtProcess, когда он завершается. Нужна как обработка ивента окончания работы луча. Аргументы возвращает сам GetCameraLookAtProcess: pos = CVector точки, куда смотрела камера на момент вызова IsCameraLookAt(); entity = Object сущности, какую захватил луч, может быть nil. Доступен такой же контроль, как через GetEntityByName() */
 --       [M] bool IsInCameraView( CVector pos, float fov_deg, int window_w, int window_h, table region )   /* Находится ли точка в поле зрения камеры с fov и размерами окна игры. Пытается взять window из конфига игры если nil. Может принять границы захвата region на экране пропорционально с left, right, bottom, top (от -1 до 1) */
 --       [M] CVector RotateAroundPoint( CVector 1, CVector 2, Quaternion or tableRotation )  /* Возвращает  точку повернутого вектора2 вокруг вектора1 на угол tableRotation [{90,0,0}] или Quaternion() */
@@ -188,14 +188,14 @@
 --         <script>
 --             trigger:IncCount()
 --             local skoka = trigger:GetCount()
---             local pos, obstacle = i3d:DrawVector(GL_LookAtCVector, GL_LookAtQuaternion, GL_LookAtDistance)
---             GL_LookAtDistance = GL_LookAtDistance * GL_LookAtDistanceCoeff
---             GL_LookAtCVector = pos
+--             local pos, obstacle = I3D:DrawVector(I3D.LookAtCVector, I3D.LookAtQuaternion, I3D.LookAtDistance)
+--             I3D.LookAtDistance = I3D.LookAtDistance * I3D.LookAtDistanceCoeff
+--             I3D.LookAtCVector = pos
 --             local entity = nil
---             if (skoka * GL_LookAtDistance>=GL_LookAtDistanceMin) then
---                 entity = i3d:CallEntityInZone(pos, GL_LookAtZoneSize)
+--             if (skoka * I3D.LookAtDistance>=I3D.LookAtDistanceMin) then
+--                 entity = I3D:CallEntityInZone(pos, I3D.LookAtZoneSize)
 --             end
---             if obstacle or entity or (skoka * GL_LookAtDistance>=GL_LookAtDistanceMax) then
+--             if obstacle or entity or (skoka * I3D.LookAtDistance>=I3D.LookAtDistanceMax) then
 --                 coroutine.resume(_G["GetCameraLookAtProcess"], pos, entity)
 --                 trigger:Deactivate()
 --             end
@@ -308,14 +308,16 @@ function I3D:SetObjectLookAt(objSetAim, objGetAim, boolOnlyYaw, boolLockRoll)
 end
 
 function I3D:IsCameraLookAt(floatDrawVectorQuant, floatDrawVectorQuantMultiplier, floatDrawVectorMinDistance, floatDrawVectorMaxDistance, floatDrawCatchZoneSize)
-	GL_LookAtCVector, GL_LookAtQuaternion = GetCameraPos()
-	GL_LookAtStartCVector = GL_LookAtCVector
-	GL_LookAtQuaternion = I3D:GetFixedQuaternion(GL_LookAtQuaternion)
-	GL_LookAtDistance = floatDrawVectorQuant or 5
-	GL_LookAtZoneSize = floatDrawCatchZoneSize or 5
-	GL_LookAtDistanceCoeff = floatDrawVectorQuantMultiplier or 1.000
-	GL_LookAtDistanceMin = floatDrawVectorMinDistance or 0
-	GL_LookAtDistanceMax = floatDrawVectorMaxDistance or I3D:GetMapKilometers()
+	local CamCVector, CamQuaternion = GetCameraPos()
+    I3D.LookAtCVector = CamCVector
+    I3D.LookAtQuaternion = CamQuaternion
+	I3D.LookAtStartCVector = I3D.LookAtCVector
+	I3D.LookAtQuaternion = I3D:GetFixedQuaternion(I3D.LookAtQuaternion)
+	I3D.LookAtDistance = floatDrawVectorQuant or 5
+	I3D.LookAtZoneSize = floatDrawCatchZoneSize or 5
+	I3D.LookAtDistanceCoeff = floatDrawVectorQuantMultiplier or 1.000
+	I3D.LookAtDistanceMin = floatDrawVectorMinDistance or 0
+	I3D.LookAtDistanceMax = floatDrawVectorMaxDistance or I3D:GetMapKilometers()
 	
 	--сброс эффекта для демонстрации точки, куда смотрит камера
 	local LookAtEffect = getObj("IsCameraLookAtEffect")
@@ -344,16 +346,16 @@ function I3D:IsCameraLookAt_VectorDrawer_f()
 	local pos, obstacle, entity
 	repeat
 		skoka = skoka + 1
-		pos, obstacle = I3D:DrawVector(GL_LookAtCVector, GL_LookAtQuaternion, GL_LookAtDistance)
-		GL_LookAtDistance = GL_LookAtDistance * GL_LookAtDistanceCoeff
-		GL_LookAtCVector = pos
-		if (skoka * GL_LookAtDistance>=GL_LookAtDistanceMin) then
-			entity = I3D:CallEntityInZone(pos, GL_LookAtZoneSize)
+		pos, obstacle = I3D:DrawVector(I3D.LookAtCVector, I3D.LookAtQuaternion, I3D.LookAtDistance)
+		I3D.LookAtDistance = I3D.LookAtDistance * I3D.LookAtDistanceCoeff
+		I3D.LookAtCVector = pos
+		if (skoka * I3D.LookAtDistance>=I3D.LookAtDistanceMin) then
+			entity = I3D:CallEntityInZone(pos, I3D.LookAtZoneSize)
 		end
-		if obstacle or entity or (skoka * GL_LookAtDistance>=GL_LookAtDistanceMax) then
+		if obstacle or entity or (skoka * I3D.LookAtDistance>=I3D.LookAtDistanceMax) then
 			break
 		end
-	until obstacle or entity or (skoka * GL_LookAtDistance>=GL_LookAtDistanceMax)
+	until obstacle or entity or (skoka * I3D.LookAtDistance>=I3D.LookAtDistanceMax)
 	
 	return pos, entity
 end
