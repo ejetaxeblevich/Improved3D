@@ -938,7 +938,7 @@ function I3D:GetAllEntities(boolGetsIntoCamera)
 		for i=1, size do
 			local entity = GetEntityByID(i)
 			if entity then
-				local _, entity_pos = try(function() return entity:GetPosition() end)
+				local _, entity_pos = pcall(function() return entity:GetPosition() end)
 				if entity_pos and type(entity_pos)=="userdata" then
 					if boolGetsIntoCamera then
 						if I3D:IsInCameraView(entity_pos) then
