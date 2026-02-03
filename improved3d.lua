@@ -7,7 +7,7 @@
 --               написанный специально для игры
 --             Ex Machina / Hard Truck Apocalypse
 --
---                     Improved3D v1.0
+--                     Improved3D v1.1
 -- 
 -- 
 -- ====================== Автор E Jet =========================
@@ -23,7 +23,7 @@
 -- для расширения возможностей на "манипулирование пространством"
 -- в игре.
 --      Вы сможете более гибко расчитывать координаты и вращение,
--- удобно размещать и вращать объекты, пользоваться некоторыми 
+-- удобно РАЗМЕЩАТЬ и ВРАЩАТЬ объекты, пользоваться некоторыми 
 -- техническими возможностями через скрипты любой модификации 
 -- внутри игры, что не могла сделать сама игра из доступных 
 -- публичных методов.
@@ -138,9 +138,6 @@
 -- каждой функции имеется детальное описание, что она делает и
 -- что в ней указывать. 
 --
---      Обратите внимание, что дочерний класс должен вызывать 
--- главный метод своего родительского класса вплоть до I3D.
---
 --      Для настройки работы [IsCameraLookAt] можно и нужно 
 -- редактировать функцию [IsCameraLookAt_Callback] раздела 
 -- USER EDITABLE FUNCTIONS ниже. Стоит также ознакомиться с
@@ -153,37 +150,51 @@
 --    Class I3D
 --    {
 --       /* Расширенное манипулирование 3D пространством */
---       [M] Quaternion SetObjectLookAt( object SetAim, object GetAim, bool OnlyYaw, bool LockRoll )  /* Обращает взор первого объекта на позицию второго объекта - как аим камеры в катсценах. Для плавной работы необходимо вызывать каждый раз: objSetAim = объект, который нужно повернуть; objGetAim = объект или позиция, на которую надо "смотреть": может быть getObj(), CVector(), GetCameraPos(); boolOnlyYaw = применяется вращение только по оси Y (как турель), если true; boolLockRoll = запрещается вращение по оси Z (наклон), если true. Примеры: SetObjectLookAt(getObj("aim_object_name"), GetPlayerVehicle(), false, true) --> Аим на объект; SetObjectLookAt(getObj("aim_object_name"), GetCameraPos(), false, true) --> Аим на камеру */
---       [M] void IsCameraLookAt( float DrawVectorQuant, float DrawVectorQuantMultiplier, float DrawVectorMinDistance, float DrawVectorMaxDistance, float DrawCatchZoneSize )        /* Смотрит ли куда-то камера? Бросает луч из камеры и пытается что-то "нащупать" (работает с триггером "IsCameraLookAt_VectorDrawer" или с IsCameraLookAt_VectorDrawer_f()): float DrawVectorQuant = шаг построения отрезка луча (в метрах); float DrawVectorQuantMultiplier = множитель шага построения отрезка луча (1.0); float DrawVectorMinDistance = минимальное расстояние, после которого идет захват объекта лучом (в метрах); float DrawVectorMaxDistance		= максимальное расстояние захвата объектов лучом (в метрах); float DrawCatchZoneSize = размер зоны захвата объектов в точке луча (в метрах); Пример: I3D:IsCameraLookAt(5,1,20,1000,5) */
---       [M] ??? IsCameraLookAt_Callback( CVector pos, Object entity )       /* Настраивается пользователем. Эта callback-функция вызывается GetCameraLookAtProcess, когда он завершается. Нужна как обработка ивента окончания работы луча. Аргументы возвращает сам GetCameraLookAtProcess: pos = CVector точки, куда смотрела камера на момент вызова IsCameraLookAt(); entity = Object сущности, какую захватил луч, может быть nil. Доступен такой же контроль, как через GetEntityByName() */
---       [M] bool IsInCameraView( CVector pos, float fov_deg, int window_w, int window_h, table region )   /* Находится ли точка в поле зрения камеры с fov и размерами окна игры. Пытается взять window из конфига игры если nil. Может принять границы захвата region на экране пропорционально с left, right, bottom, top (от -1 до 1) */
---       [M] CVector RotateAroundPoint( CVector 1, CVector 2, Quaternion or tableRotation )  /* Возвращает  точку повернутого вектора2 вокруг вектора1 на угол tableRotation [{90,0,0}] или Quaternion() */
---       [M] CVector LinearMoveAroundPoint( CVector 1_old, CVector 1_new, CVector 2_old )    /* Возвращает точку сдвинутого вектора2 линейно вместе с вектором1: 1_old = последняя сохраненная позиция вектора1; 1_new	= новая позиция вектора1; 2_old	= последняя сохраненная позиция вектора2 */
+--       [M] table Positions SetObjectsAroundCircle( table ListOfObjects, CVector CenterPos, Quaternion BaseRotation, float Radius, float StartAngleDeg, bool or Quaternion LookOutside, bool AutoRadius, bool PosAbsolute )    /* Размещает выбранные объекты ListOfObjects по окружности в позиции CenterPos и вращением орбиты BaseRotation с начальным радиусом Radius, с углом смещения первого объекта по орбите на StartAngleDeg. Объекты смотрят наружу, если LookOutside = true, иначе внутрь, можно передать Quaternion для своего вращения. Объекты размещаются с динамическим радиусом, зависящим от длины конкретного объекта, если AutoRadius = true, иначе выравнивание по длине первого объекта в списке (чтобы не спавнились друг в друге). Размещает объекты с фиксированной высотой, если PosAbsolute = true, иначе на ландшафте */
+--       [M] Quaternion SetObjectLookAt( object SetAim, object GetAim, bool OnlyYaw, bool LockRoll )    /* Обращает взор первого объекта на позицию второго объекта - как аим камеры в катсценах. Для плавной работы необходимо вызывать каждый раз: objSetAim = объект, который нужно повернуть; objGetAim = объект или позиция, на которую надо "смотреть": может быть getObj(), CVector(), GetCameraPos(); boolOnlyYaw = применяется вращение только по оси Y (как турель), если true; boolLockRoll = запрещается вращение по оси Z (наклон), если true. Примеры: SetObjectLookAt(getObj("aim_object_name"), GetPlayerVehicle(), false, true) --> Аим на объект; SetObjectLookAt(getObj("aim_object_name"), GetCameraPos(), false, true) --> Аим на камеру */
+--       [M] void IsCameraLookAt( float DrawVectorQuant, float DrawVectorQuantMultiplier, float DrawVectorMinDistance, float DrawVectorMaxDistance, float DrawCatchZoneSize )        /* Смотрит ли куда-то камера? Бросает луч из камеры и пытается что-то "нащупать" (работает с триггером "IsCameraLookAt_VectorDrawer" или с IsCameraLookAt_VectorDrawer_f()): float DrawVectorQuant = шаг построения отрезка луча (в метрах); float DrawVectorQuantMultiplier = множитель шага построения отрезка луча (1.0); float DrawVectorMinDistance = минимальное расстояние, после которого идет захват объекта лучом (в метрах); float DrawVectorMaxDistance = максимальное расстояние захвата объектов лучом (в метрах); float DrawCatchZoneSize = размер зоны захвата объектов в точке луча (в метрах); Оригинальный lookAt у [GetCameraPos()] сломан. Пример использования: I3D:IsCameraLookAt(5,1,20,1000,5) */
+--       [M] ??? IsCameraLookAt_Callback( CVector pos, Object entity )     /* Настраивается пользователем. Эта callback-функция вызывается GetCameraLookAtProcess, когда он завершается. Нужна как обработка ивента окончания работы луча. Аргументы возвращает сам GetCameraLookAtProcess: pos = CVector точки, куда смотрела камера на момент вызова IsCameraLookAt(); entity = Object сущности, какую захватил луч, может быть nil. Доступен такой же контроль, как через GetEntityByName() */
+--       [M] bool IsInCameraView( CVector pos, table region )              /* Находится ли точка в поле зрения камеры. Может принять границы захвата на экране region={} пропорционально с left, right, bottom, top (от -1 до 1) */
+--       [M] bool IsInCameraViewSquared( CVector pos, float ScopeCoeff )   /* Находится ли точка в поле зрения камеры. Может принять границы захвата на экране в квадратном соотношении с ScopeCoeff (от -1 до 1) */
+--       [M] bool IsObjectInCameraView( object Entity, float ScopeCoeff, bool SquareScope )   /* Находится ли объект в поле зрения камеры. Объединяет между собой [IsInCameraViewSquared] и [IsInCameraView], где: Entity - объект как getObj() или GetEntityByName(); ScopeCoeff - коэффициент размера зоны захвата на экране (от 0 до 1, где 1 = весь экран). Может быть как region={} с left, right, top, bottom (от -1 до 1); SquareScope - квадратное соотношение зоны захвата, если true */
+--       [M] CVector RotateAroundPoint( CVector 1, CVector 2, Quaternion or tableRotation )   /* Возвращает точку повернутого вектора2 вокруг вектора1 на угол tableRotation [{90,0,0}] или Quaternion() */
+--       [M] CVector LinearMoveAroundPoint( CVector 1_old, CVector 1_new, CVector 2_old )     /* Возвращает точку сдвинутого вектора2 линейно вместе с вектором1: 1_old = последняя сохраненная позиция вектора1; 1_new	= новая позиция вектора1; 2_old	= последняя сохраненная позиция вектора2 */
 --       [M] CVector AdjustDistanceBetweenVectors( CVector 1_old, CVector 2_old, float target_dist )     /* Возвращает точку вектора2 на нужном расстоянии от вектора1: 1_old = последняя сохраненная позиция вектора1; 2_old = последняя сохраненная позиция вектора2; target_dist = требуемое расстояние между векторами */
 --       [M] CVector GetEndOfBeam( CVector origin, Quaternion, float distance )      /* Возвращает точку на расстоянии distance от origin, направленную по вращению quaternion */
---       [M] CVector&boolObstacle DrawVector( CVector origin, Quaternion, float distance )   /* Рисует вектор в игровом мире длиной distance от origin, направленного по вращению quaternion и возвращает его вторую точку (воспринимает препятствия в виде ландшафта и края карты) */
+--       [M] CVector&boolObstacle DrawVector( CVector origin, Quaternion, float distance )    /* Рисует вектор в игровом мире длиной distance от origin, направленного по вращению quaternion и возвращает его вторую точку (воспринимает препятствия в виде ландшафта и края карты) */
+--       [M] Quaternion QuaternionFromTo( CVector From, CVector To )           /* Возвращает кватернион от вектора к вектору (вращение из одного направления в другое) */
+--       [M] Quaternion QuaternionByLandscape( CVector vec, Quaternion rot )   /* Возвращает кватернион по уровню ландшафта. Выравнивает объект по ландшафту, чтобы он не был строго в горизонте при появлении */
+--       [M] CVector RotateCVectorByQuaternion( CVector, Quaternion )    /* Возвращает точку помноженного вектора на кватернион (поворот CVector по вращению Quaternion) */
+--       [M] CVectorX&CVectorY&CVectorZ QuaternionToAxes( Quaternion )   /* Возвращает направления по осям из кватерниона */
+--       [M] Quaternion QuaternionFromAxes( CVector right, CVector up, CVector forward )  /* Возвращает кватернион из направлений по осям */
+--       [M] CVector GetForwardFromQuaternion( Quaternion )      /* Возвращает направление "вперед" из вращения */
+--       [M] CVector CVectorAverage( table Positions, bool Y )   /* Возвращает точку как среднее арифметическое векторов, считает Y если true */
 --       [M] Object CallEntityInZone( CVector pos, float ZoneSize, bool GetsIntoCamera )     /* Возвращает объект, что находится в желаемой точке: posVector = CVector точки, позиция камеры если nil; float ZoneSize = размер зоны у точки, в которой может быть объект (в метрах); bool GetsIntoCamera = захватывает только объекты, что могут быть спереди камеры если true */
 --       [M] table GetAllEntities( bool GetsIntoCamera )         /* Возвращает все объекты на карте, что имеют позиции CVector и их количество: bool GetsIntoCamera = захватывает только объекты в поле зрения камеры, если true */
 --
 --       /* Помощь в расчетах */
---       [M] CVector ParseCVector( string CVector )      /* Возвращает CVector из строки с CVector (юзердату) */
---       [M] Quaternion EulerToQuaternion( float x, float y, float z, bool LOG ) /* Преобразует углы Эйлера (градусы) в углы кватерниона. Принтит в лог результат, если bool LOG = true. */
---       [M] EulerX&EulerY&EulerZ QuaternionToEuler( Quaternion, bool LOG )      /* Преобразует углы кватерниона в углы Эйлера (градусы). Принтит в лог результат, если bool LOG = true. */
---       [M] Quaternion GetFixedQuaternion( Quaternion )         /* Возвращает исправленное вращение. Как понять, что ваше вращение понос спидозного бомжа? - объект хуй пойми куда смотрит, а не куда ему нужно */
---       [M] Quaternion QuaternionFromTo( CVector From, CVector To )     /* Возвращает кватернион от вектора к вектору (вращение из одного направления в другое) */
---       [M] CVector RotateCVectorByQuaternion( CVector, Quaternion )    /* Возвращает точку помноженного вектора на кватернион (поворот CVector по вращению Quaternion) */
---       [M] CVectorX&CVectorY&CVectorZ QuaternionToAxes( Quaternion )   /* Возвращает направления по осям из кватерниона */
---       [M] CVector CVectorAverage( table CVectors, bool Y )    /* Возвращает точку как среднее арифметическое векторов, считает Y если true */
---       [M] CVector GetForwardFromQuaternion( Quaternion )      /* Возвращает направление "вперед" из вращения */
---       [M] float CVectorDot( CVector 1, CVector 2 )            /* Возвращает скалярное произведение двух векторов */
---       [M] CVector CVectorCross( CVector 1, CVector 2 )        /* Возвращает точку векторного произведения двух векторов */
---       [M] CVector CVectorNormalize( CVector )         /* Возвращает нормализацию вектора */
---       [M] int GetMapKilometers()       /* Возвращает константу размера текущей карты в километрах */
+--       [M] bool IsCVector( userdata )      /* Проверяет значение юзердаты, что это координаты CVector */
+--       [M] bool IsQuaternion( userdata )   /* Проверяет значение юзердаты, что это вращение Quaternion */
+--       [M] string IsUserdata( userdata )   /* Проверяет значение юзердаты. Объединяет [IsCVector()] и [IsQuaternion()], возвращая строковые значения для сравнения: ["cvector"], ["quaternion"], ["userdata"], ["not userdata"]. Бонусом может вернуть строкой класс объекта */
+--       [M] table UpdateScreenInfo()        /* Обновляет переменные модуля и возвращает fov, width и height окна игры */
+--       [M] CVector GetCameraPos()      /* Обертка стандартного [GetCameraPos()] под координаты */
+--       [M] Quaternion GetCameraRot()   /* Возвращает исправленное вращение камеры от [GetCameraPos()]. Оригинальное вращение зеркально от полюсов, которое нормально работает для камеры в катсценах, но не для объектов */
+--       [M] CVector ParseCVector( string CVector )     /* Возвращает CVector из строки с CVector (юзердату) */
+--       [M] table Positions ItemsToCVectors( table Items )       /* Преобразует список из разных элементов в список с их CVector (юзердаты). Элементами могут быть: ["MyVehicleName"], [getObj()], ["1 2 3"], [CVector(1,2,3)] */
+--       [M] table Objects CollectVehiclesByTeam( string TeamName )   /* Возвращает список найденных машин из команды по имени TeamName */
+--       [M] table Objects CollectObjects( table ObjectNamesOrIDs )   /* Возвращает список найденных объектов из списка. Могут быть имена и айди */
+--       [M] Quaternion EulerToQuaternion( float x, float y, float z, bool LOG )   /* Преобразует углы Эйлера (градусы) в углы кватерниона. Принтит в лог результат, если bool LOG = true. */
+--       [M] floatX&floatY&floatZ QuaternionToEuler( Quaternion, bool LOG )        /* Преобразует углы кватерниона в углы Эйлера (градусы). Принтит в лог результат, если bool LOG = true. */
+--       [M] Quaternion GetFixedQuaternion( Quaternion )     /* Возвращает исправленное вращение. Как понять, что ваше вращение понос спидозного бомжа? - объект хуй пойми куда смотрит, а не куда ему нужно */
+--       [M] float CVectorDot( CVector 1, CVector 2 )        /* Возвращает скалярное произведение двух векторов */
+--       [M] CVector CVectorCross( CVector 1, CVector 2 )    /* Возвращает точку векторного произведения двух векторов */
+--       [M] CVector CVectorNormalize( CVector )       /* Возвращает нормализацию вектора */
+--       [M] int GetMapSize()     /* Возвращает константу размера текущей карты в метрах */
 --
 --       /* Сервисные функции. По возможности не используйте */
 --       [M] CVector&Object IsCameraLookAt_VectorDrawer_f()      /* Функция вместо триггера "IsCameraLookAt_VectorDrawer". Плюсы: Луч строится мгновенно; Минусы: Экс Машина */
 --       [M] Quaternion CVectorEulerToQuaternion( float pitch, float yaw, float roll, bool LOG )     /* Преобразует углы Эйлера (градусы) в углы кватерниона. Принтит в лог результат, если bool LOG = true. Используйте на входе: pitch = y, yaw = z, roll = x */
---       [M] EulerX&EulerY&EulerZ CVectorQuaternionToEuler( Quaternion, bool LOG )   /* Преобразует углы кватерниона в углы Эйлера (градусы). Принтит в лог результат, если bool LOG = true. Используйте на выходе pitch = y, yaw = z, roll = x. */
+--       [M] floatX&floatY&floatZ CVectorQuaternionToEuler( Quaternion, bool LOG )   /* Преобразует углы кватерниона в углы Эйлера (градусы). Принтит в лог результат, если bool LOG = true. Используйте на выходе pitch = y, yaw = z, roll = x. */
 --    }
 -- ]]
 --
@@ -229,9 +240,14 @@
 -- 
 -- E Jet: Спасибо нашим поварам за то, что вкусно варят нам!
 -- 
+-- E Jet: Благодарность crtvxxx за помощь с math.!
+--      В импортированной функции из ExplorerMod на спавн по 
+-- окружности я впервые столкнулся с проблемой МАТЕМАТИКИ! Пусть
+-- функция и была переписана полностью, но уважение вечно! Этот
+-- парень выручил целую фичу!
+--
 -- ============================================================
 -- ============================================================
-
 
 
 
@@ -240,16 +256,30 @@
 
 local I3D = {}
 I3D.__index = I3D
-I3D.version = "v1.0"
+I3D.version = "v1.1"
 
 LOG("[I] Init Module Improved3D.lua ...")
+
+
+-- ////////////////////////// DEFAULT MODULE CONSTANTS //////////////////////////
+
+
+I3D.Default_FOV = 70
+I3D.Default_Width = 1920
+I3D.Default_Height = 1080
+
 
 if not g_ObjCont then
     LOG("[E] Module Improved3D.lua === g_ObjCont not found!!!")
     return
 end
 
+
+-- ///////////////////////////////////////////////////////////////////////////////
+
 -- ////////////////////////// USER EDITABLE FUNCTIONS ////////////////////////////
+
+-- ///////////////////////////////////////////////////////////////////////////////
 
 
 function I3D:IsCameraLookAt_Callback(pos, entity)
@@ -271,6 +301,41 @@ function I3D:IsCameraLookAt_Callback(pos, entity)
 end
 
 
+-- ///////////////////////////////////////////////////////////////////////////////
+
+-- ///////////////////////////////////////////////////////////////////////////////
+
+-- ///////////////////////////////////////////////////////////////////////////////
+
+
+
+-- ///////////////////////////// LOCAL FUNCTIONS ////////////////////////////
+
+
+local function get_config(stringParamName)
+	local value
+	local f = io.open("data\\config.cfg", "r")
+	if f then
+		local data = f:read("*all")
+		f:close()
+		_,_, value = string.find(data, stringParamName..'%s*=%s*"([^"]*)"')
+	end
+	return value
+end
+
+local function get_screen()
+    local fov_deg = tonumber(get_config("fov")) or I3D.Default_FOV
+	local window_w = tonumber(get_config("r_width")) or I3D.Default_Width
+	local window_h = tonumber(get_config("r_height")) or I3D.Default_Height
+    return fov_deg, window_w, window_h
+end
+
+local function get_commas(value)
+    local s = tostring(value)
+    local _, commas = string.gsub(s, ",", ",")
+    return commas or 0
+end
+
 
 -- ///////////////////////////////////////////////////////////////////////////////
 
@@ -279,6 +344,56 @@ end
 -- ///////////////////////////////////////////////////////////////////////////////
 
 
+function I3D:IsCVector(userdata)
+    if type(userdata)=="userdata" then
+        if get_commas(userdata)==2 then
+            return true
+        end
+    end
+    return false
+end
+
+function I3D:IsQuaternion(userdata)
+    if type(userdata)=="userdata" then
+        if get_commas(userdata)==3 then
+            return true
+        end
+    end
+    return false
+end
+
+function I3D:IsUserdata(userdata)
+    if type(userdata)=="userdata" or type(userdata)=="table" then
+        if I3D:IsCVector(userdata) then
+            return "cvector"
+        end
+        if I3D:IsQuaternion(userdata) then
+            return "quaternion"
+        end
+        local _, class = pcall(function() return userdata:GetClassName() end)
+        if class then
+            return class
+        end
+        if type(userdata)=="userdata" then
+            return "userdata"
+        end
+    end
+    return "not userdata"
+end
+
+function I3D:UpdateScreenInfo()
+    local fov_deg, window_w, window_h = get_screen()
+    I3D.FOV = fov_deg
+    I3D.WINDOW_W = window_w
+    I3D.WINDOW_H = window_h
+    local info = {
+        fov = fov_deg, 
+        width = window_w, 
+        height = window_h
+    }
+    return info
+end
+I3D:UpdateScreenInfo()
 
 function I3D:SetObjectLookAt(objSetAim, objGetAim, boolOnlyYaw, boolLockRoll)
 	if not objSetAim then
@@ -317,17 +432,24 @@ function I3D:SetObjectLookAt(objSetAim, objGetAim, boolOnlyYaw, boolLockRoll)
 	return lookRotation
 end
 
+function I3D:GetCameraPos()
+    return GetCameraPos()
+end
+
+function I3D:GetCameraRot()
+    local _, rot = GetCameraPos()
+    return I3D:GetFixedQuaternion(rot)
+end
+
 function I3D:IsCameraLookAt(floatDrawVectorQuant, floatDrawVectorQuantMultiplier, floatDrawVectorMinDistance, floatDrawVectorMaxDistance, floatDrawCatchZoneSize)
-	local CamCVector, CamQuaternion = GetCameraPos()
-    I3D.LookAtCVector = CamCVector
-    I3D.LookAtQuaternion = CamQuaternion
+    I3D.LookAtCVector = I3D:GetCameraPos()
+    I3D.LookAtQuaternion = I3D:GetCameraRot()
 	I3D.LookAtStartCVector = I3D.LookAtCVector
-	I3D.LookAtQuaternion = I3D:GetFixedQuaternion(I3D.LookAtQuaternion)
 	I3D.LookAtDistance = floatDrawVectorQuant or 5
 	I3D.LookAtZoneSize = floatDrawCatchZoneSize or 5
 	I3D.LookAtDistanceCoeff = floatDrawVectorQuantMultiplier or 1.000
 	I3D.LookAtDistanceMin = floatDrawVectorMinDistance or 0
-	I3D.LookAtDistanceMax = floatDrawVectorMaxDistance or I3D:GetMapKilometers()
+	I3D.LookAtDistanceMax = floatDrawVectorMaxDistance or I3D:GetMapSize()
 	
 	--сброс эффекта для демонстрации точки, куда смотрит камера
 	local LookAtEffect = getObj("IsCameraLookAtEffect")
@@ -370,6 +492,110 @@ function I3D:IsCameraLookAt_VectorDrawer_f()
 	return pos, entity
 end
 
+function I3D:CollectVehiclesByTeam(stringTeamName)
+    local vehicles = {}
+    local team = getObj(stringTeamName)
+    if not team then
+        return
+    end
+    for i=0, team:GetNumVehicles() or 1 do
+        local veh = GetEntityByName(stringTeamName.."_vehicle_"..i)
+        if veh then
+            --LOG(stringTeamName.."_vehicle_"..i)
+            table.insert(vehicles, veh)
+        end
+    end
+    return vehicles
+end
+
+function I3D:CollectObjects(tableObjectNamesOrIDs)
+    local objects = {}
+    for i, name in ipairs(tableObjectNamesOrIDs) do
+        local obj = getObj(name)
+        if obj then
+            table.insert(objects, obj)
+        end
+    end
+    return objects
+end
+
+function I3D:SetObjectsAroundCircle(ListOfObjects, CenterPos, BaseRotation, Radius, StartAngleDeg, LookOutside, boolAutoRadius, boolPosAbsolute)
+    --спасибо crtvxxx за помощь с math.
+    --функция была переписана полностью, но уважение вечно!
+    Radius = Radius or 1
+    StartAngleDeg = StartAngleDeg or 0
+    BaseRotation = BaseRotation or Quaternion(0,0,0,1)
+
+    local count = getn(ListOfObjects)
+    if 1 >= count then
+        return { CenterPos }, false
+    end
+
+    local angleStep = 360 / count
+    local Positions = {}
+
+    local up = I3D:RotateCVectorByQuaternion(CVector(0,1,0), BaseRotation)
+
+    local objRadius = Radius
+    for i, object in ipairs(ListOfObjects) do
+        --авто радиус
+        if boolAutoRadius or i==1 then
+            objRadius = Radius
+            local _, size = pcall(function() return object:GetSize() end)
+            objRadius = objRadius + (size and size.z or 0) * 0.75
+        end
+
+        local angle = StartAngleDeg + (i-1) * angleStep
+        local rad = math.rad(angle)
+
+        --орбита
+        local localOffset = CVector(
+            math.sin(rad) * objRadius,
+            0,
+            math.cos(rad) * objRadius
+        )
+        local worldOffset = I3D:RotateCVectorByQuaternion(localOffset, BaseRotation)
+        local pos = CVector(
+            CenterPos.x + worldOffset.x,
+            CenterPos.y + worldOffset.y,
+            CenterPos.z + worldOffset.z
+        )
+
+        --направление
+        local forward
+        if LookOutside and I3D:IsQuaternion(LookOutside) then
+            forward = I3D:RotateCVectorByQuaternion(worldOffset, LookOutside)
+        elseif LookOutside then
+            forward = worldOffset
+        else
+            forward = CVector(-worldOffset.x, -worldOffset.y, -worldOffset.z)
+        end
+        forward = I3D:CVectorNormalize(forward)
+
+        local right = I3D:CVectorNormalize(I3D:CVectorCross(up, forward))
+        local realUp = I3D:CVectorCross(forward, right)
+
+        local finalRot = I3D:QuaternionFromAxes(right, realUp, forward)
+
+        --назначение
+        pcall(function() object:setGodMode(1) end)
+        object:SetRotation(finalRot)
+        if boolPosAbsolute then
+            object:SetPosition(pos)
+        else
+            local veh = pcall(function() object:SetGamePositionOnGround(pos) end)
+            if not veh then
+                object:SetPosition(CVector(pos.x, g_ObjCont:GetHeight(pos.x, pos.z), pos.z))
+            end
+        end
+        pcall(function() object:setGodMode(0) end)
+
+        table.insert(Positions, pos)
+    end
+
+    return Positions, true
+end
+
 function I3D:CVectorDot(v1, v2)
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
 end
@@ -409,6 +635,27 @@ function I3D:CVectorAverage(listVectors, boolY)
 	end
 
 	return AverageCVector
+end
+
+function I3D:ItemsToCVectors(tableItems)
+    local vectors = {}
+    for i, v in ipairs(tableItems or {}) do
+        if type(v)=="userdata" then
+            vectors[i] = v
+        elseif type(v)=="string" then
+            local o = getObj(v)
+            if o then
+                local _, v = pcall(function() return o:GetPosition() end)
+                vectors[i] = v
+            else
+                vectors[i] = I3D:ParseCVector(v)
+            end
+        elseif type(v)=="table" then
+            local _, v = pcall(function() return v:GetPosition() end)
+            vectors[i] = v
+        end
+    end
+    return vectors
 end
 
 function I3D:CVectorNormalize(vec)
@@ -455,6 +702,22 @@ function I3D:QuaternionFromTo(fromVec, toVec)
 	)
 end
 
+function I3D:QuaternionByLandscape(vec, rot)
+    local tochka1 = vec
+    tochka1.y = g_ObjCont:GetHeight(tochka1.x, tochka1.z)
+
+    local tochka2 = I3D:GetEndOfBeam(tochka1, rot, 1)
+    tochka2.y = g_ObjCont:GetHeight(tochka2.x, tochka2.z)
+
+    local direction = I3D:CVectorNormalize(tochka2 - tochka1)
+    local lookRotation = I3D:QuaternionFromTo(CVector(0,0,1), direction)
+
+    local x, y, z = I3D:CVectorQuaternionToEuler(lookRotation)
+    lookRotation = I3D:CVectorEulerToQuaternion(y, 0, x)
+
+    return lookRotation
+end
+
 function I3D:RotateCVectorByQuaternion(vec, quat)
     --кватернион-векторное умножение: v' = q * v * q^-1
     local qx, qy, qz, qw = quat.x, quat.y, quat.z, quat.w
@@ -477,7 +740,6 @@ function I3D:RotateCVectorByQuaternion(vec, quat)
 end
 
 function I3D:QuaternionToAxes(q)
-    --нормализуем quaternion
     local x, y, z, w = q.x, q.y, q.z, q.w
     local xx, yy, zz = x*x, y*y, z*z
     local xy, xz, yz = x*y, x*z, y*z
@@ -502,6 +764,43 @@ function I3D:QuaternionToAxes(q)
     )
 
     return right, up, forward
+end
+
+function I3D:QuaternionFromAxes(right, up, forward)
+    local m00, m01, m02 = right.x, up.x, forward.x
+    local m10, m11, m12 = right.y, up.y, forward.y
+    local m20, m21, m22 = right.z, up.z, forward.z
+
+    local trace = m00 + m11 + m22
+    local q = Quaternion(0,0,0,1)
+
+    if trace > 0 then
+        local s = math.sqrt(trace + 1.0) * 2
+        q.w = 0.25 * s
+        q.x = (m21 - m12) / s
+        q.y = (m02 - m20) / s
+        q.z = (m10 - m01) / s
+    elseif m00 > m11 and m00 > m22 then
+        local s = math.sqrt(1.0 + m00 - m11 - m22) * 2
+        q.w = (m21 - m12) / s
+        q.x = 0.25 * s
+        q.y = (m01 + m10) / s
+        q.z = (m02 + m20) / s
+    elseif m11 > m22 then
+        local s = math.sqrt(1.0 + m11 - m00 - m22) * 2
+        q.w = (m02 - m20) / s
+        q.x = (m01 + m10) / s
+        q.y = 0.25 * s
+        q.z = (m12 + m21) / s
+    else
+        local s = math.sqrt(1.0 + m22 - m00 - m11) * 2
+        q.w = (m10 - m01) / s
+        q.x = (m02 + m20) / s
+        q.y = (m12 + m21) / s
+        q.z = 0.25 * s
+    end
+
+    return q
 end
 
 function I3D:RotateAroundPoint(v1, v2, rot)
@@ -660,29 +959,17 @@ function I3D:GetFixedQuaternion(quaternion)
     return Quaternion(x, y, z, w)
 end
 
-local function _GetFromConfig(stringParamName)
-	local value
-	local f = io.open("data\\config.cfg", "r")
-	if f then
-		local data = f:read("*all")
-		f:close()
-		_,_, value = string.find(data, stringParamName..'%s*=%s*"([^"]*)"')
-	end
-	return value
-end
-
-function I3D:IsInCameraView(pos, fov_deg, window_w, window_h, region)
+function I3D:IsInCameraView(pos, region)
     --region = { left=-0.5, right=0.5, top=0.5, bottom=-0.5 }
 
     --позиция и ориентация камеры
-    local camera_pos, camera_quat = GetCameraPos()
-    camera_quat = I3D:GetFixedQuaternion(camera_quat)
+    local camera_pos, camera_quat = I3D:GetCameraPos(), I3D:GetCameraRot()
 
     --воздать если нету
-    pos = pos or CVector(0,0,0)
-    fov_deg = fov_deg or tonumber(_GetFromConfig("fov")) or 70
-	window_w = window_w or tonumber(_GetFromConfig("r_width")) or 1920
-	window_h = window_h or tonumber(_GetFromConfig("r_height")) or 1080
+    local pos = pos or CVector(0,0,0)
+    local fov_deg = I3D.FOV or I3D:UpdateScreenInfo().fov
+	local window_w = I3D.WINDOW_W or I3D:UpdateScreenInfo().width
+	local window_h = I3D.WINDOW_H or I3D:UpdateScreenInfo().height
 
     --оси камеры из quaternion
     local right, up, forward = I3D:QuaternionToAxes(camera_quat)
@@ -731,7 +1018,49 @@ function I3D:IsInCameraView(pos, fov_deg, window_w, window_h, region)
     end
 end
 
-function I3D:GetMapKilometers()
+function I3D:IsInCameraViewSquared(pos, floatScopeCoeff)
+	floatScopeCoeff = floatScopeCoeff or 1
+
+	local pos = pos or CVector(0,0,0)
+    local fov_deg = I3D.FOV or I3D:UpdateScreenInfo().fov
+	local window_w = I3D.WINDOW_W or I3D:UpdateScreenInfo().width
+	local window_h = I3D.WINDOW_H or I3D:UpdateScreenInfo().height
+
+	local aspect = window_w / window_h
+
+	local region = { 
+		left = -floatScopeCoeff / aspect, 
+		right = floatScopeCoeff / aspect, 
+		top = floatScopeCoeff, 
+		bottom = -floatScopeCoeff
+	}
+
+	return I3D:IsInCameraView(pos, region)
+end
+
+function I3D:IsObjectInCameraView(objEntity, floatScopeCoeff, boolSquareScope)
+	if not objEntity then
+		return nil
+	end
+
+	floatScopeCoeff = floatScopeCoeff or 1
+
+	local entity_pos = objEntity:GetPosition() or CVector(0,0,0)
+
+	if boolSquareScope and not type(floatScopeCoeff)=="table" then
+		return I3D:IsInCameraViewSquared(entity_pos, floatScopeCoeff)
+	else
+		local region = {
+			left = type(floatScopeCoeff)=="table" and floatScopeCoeff.left or floatScopeCoeff, 
+			right = type(floatScopeCoeff)=="table" and floatScopeCoeff.right or floatScopeCoeff, 
+			top = type(floatScopeCoeff)=="table" and floatScopeCoeff.top or floatScopeCoeff, 
+			bottom = type(floatScopeCoeff)=="table" and floatScopeCoeff.bottom or floatScopeCoeff
+		}
+		return I3D:IsInCameraView(entity_pos, region)
+	end
+end
+
+function I3D:GetMapSize()
 	local mapsize = GET_GLOBAL_OBJECT( "CurrentLevel" ):GetLandSize()
 	if mapsize==64 then
 		mapsize = 8000
@@ -756,7 +1085,7 @@ function I3D:DrawVector(origin, quaternion, distance)
 		--println("vector undergrounded!")
 		obstacle = true
 	end
-	local mapsize = I3D:GetMapKilometers()
+	local mapsize = I3D:GetMapSize()
 	if (pos.x>=mapsize or pos.y>=mapsize or pos.z>=mapsize) or (0>=pos.x or 0>=pos.y or 0>=pos.z) then
 		--println("vector dropped out of the world!")
 		obstacle = true
@@ -866,22 +1195,22 @@ function I3D:QuaternionToEuler(quaternion,bLOG)
 		LOG("[I] Module Improved3D.lua === QuaternionToEuler(): Input Quaternion"..tostring(Quaternion(x,y,z,w)))
 	end
 	--Вычисляем углы Эйлера (в радианах)
-	--EXPRINT("x "..x)
-	--EXPRINT("y "..y)
-	--EXPRINT("z "..z)
-	--EXPRINT("w "..w)
+	--println("x "..x)
+	--println("y "..y)
+	--println("z "..z)
+	--println("w "..w)
     local pitch = math.asin(2 * (w * y - z * x))
 
     --Проверяем, не вызывает ли это выход за пределы -1 и 1
-	--EXPRINT("pit "..pitch)
-	--EXPRINT("abs "..math.abs(pitch))
+	--println("pit "..pitch)
+	--println("abs "..math.abs(pitch))
     if (math.abs(pitch) == (math.pi / 2)) or (math.abs(pitch) == -(math.pi / 2)) then
 	--if math.abs(pitch) == (math.pi / 2) then
     --if math.abs(pitch)>=(-1.0000000001) or (-1.0000000001)>=math.abs(pitch) then
         local roll = 0
         local yaw = math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
         --Возвращаем углы Эйлера в градусах
-		--EXPRINT("qqqqqqqqqqqqqqqqqqq")
+		--println("qqqqqqqqqqqqqqqqqqq")
 		if bLOG==true then
 			LOG("[I] Module Improved3D.lua === QuaternionToEuler(): Got x: "..math.deg(roll)..", y: "..math.deg(pitch)..", z: "..math.deg(yaw))
 		end
@@ -912,7 +1241,7 @@ end
 
 function I3D:CallEntityInZone(posVector, floatZoneSize, boolGetsIntoCamera)
 	local Entity
-	local posVector = posVector or GetCameraPos()
+	local posVector = posVector or I3D:GetCameraPos()
 	local floatZoneSize = floatZoneSize or 10
 	GLOBAL_ENTITIES_ON_MAP = GLOBAL_ENTITIES_ON_MAP or I3D:GetAllEntities(boolGetsIntoCamera)
 	GLOBAL_ENTITIES_ON_MAP_SIZE = GLOBAL_ENTITIES_ON_MAP_SIZE or getn(GLOBAL_ENTITIES_ON_MAP)
