@@ -7,7 +7,7 @@
 --               написанный специально для игры
 --             Ex Machina / Hard Truck Apocalypse
 --
---                     Improved3D v1.1
+--                     Improved3D v1.2
 -- 
 -- 
 -- ====================== Автор E Jet =========================
@@ -177,9 +177,14 @@
 --       [M] bool IsQuaternion( userdata )   /* Проверяет значение юзердаты, что это вращение Quaternion */
 --       [M] string IsUserdata( userdata )   /* Проверяет значение юзердаты. Объединяет [IsCVector()] и [IsQuaternion()], возвращая строковые значения для сравнения: ["cvector"], ["quaternion"], ["userdata"], ["not userdata"]. Бонусом может вернуть строкой класс объекта */
 --       [M] table UpdateScreenInfo()        /* Обновляет переменные модуля и возвращает fov, width и height окна игры */
+--       [M] table CollectExternalPaths( string PathNamePrefix, string CollectPostfix )  /* Возвращает и принтит в лог список External Paths с пронумерованными именами текущей карты. Префикс имени PathNamePrefix может быть любым; постфикс имени CollectPostfix должен содержать число с которого начнется отсчет. Пример: "pathName" и "_0" для имен: "pathName_0", "pathName_1" */
+--       [M] table CollectCameraPaths( string PathNamePrefix, string CollectPostfix )    /* Возвращает и принтит в лог список Camera Paths с пронумерованными именами текущей карты. Префикс имени PathNamePrefix может быть любым; постфикс имени CollectPostfix должен содержать число с которого начнется отсчет. Пример: "pathName" и "_0" для имен: "pathName_0", "pathName_1" */
+--       [M] int MoveObject( object Entity, string PathName, float MoveTime, string MoverName )   /* Обертка cinematicMover с именем MoverName, возвращает его ID. Объект Entity начинает полет по пути камеры PathName и укладывается во время MoveTime (секунды) */
+--       [M] void MoveObjectsByPaths( table Objects, table PathNames, float MoveTime, string MoverName )   /* Выбранные объекты начинают движение по каждому своему пути, обертка [MoveObject()] под несколько объектов. Количество элементов в списках должно быть одинаковым */
 --       [M] CVector GetCameraPos()      /* Обертка стандартного [GetCameraPos()] под координаты */
 --       [M] Quaternion GetCameraRot()   /* Возвращает исправленное вращение камеры от [GetCameraPos()]. Оригинальное вращение зеркально от полюсов, которое нормально работает для камеры в катсценах, но не для объектов */
 --       [M] CVector ParseCVector( string CVector )     /* Возвращает CVector из строки с CVector (юзердату) */
+--       [M] Quaternion ParseQuaternion( string Quaternion )      /* Возвращает Quaternion из строки с Quaternion (юзердату) */
 --       [M] table Positions ItemsToCVectors( table Items )       /* Преобразует список из разных элементов в список с их CVector (юзердаты). Элементами могут быть: ["MyVehicleName"], [getObj()], ["1 2 3"], [CVector(1,2,3)] */
 --       [M] table Objects CollectVehiclesByTeam( string TeamName )   /* Возвращает список найденных машин из команды по имени TeamName */
 --       [M] table Objects CollectObjects( table ObjectNamesOrIDs )   /* Возвращает список найденных объектов из списка. Могут быть имена и айди */
@@ -256,7 +261,16 @@
 
 local I3D = {}
 I3D.__index = I3D
-I3D.version = "v1.1"
+I3D.version = "v1.2"
+
+local str_find = strfind or string.find
+local str_gsub = strgsub or string.gsub
+
+local t_insert = tinsert or table.insert
+local t_getn = tgetn or table.getn
+
+local io_open = iopen or io.open
+
 
 LOG("[I] Init Module Improved3D.lua ...")
 
@@ -270,6 +284,7 @@ I3D.Default_Height = 1080
 
 
 if not g_ObjCont then
+    --g_ObjCont = GET_GLOBAL_OBJECT "g_ObjContainer"
     LOG("[E] Module Improved3D.lua === g_ObjCont not found!!!")
     return
 end
@@ -314,11 +329,11 @@ end
 
 local function get_config(stringParamName)
 	local value
-	local f = io.open("data\\config.cfg", "r")
+	local f = io_open("data\\config.cfg", "r")
 	if f then
 		local data = f:read("*all")
 		f:close()
-		_,_, value = string.find(data, stringParamName..'%s*=%s*"([^"]*)"')
+		_,_, value = str_find(data, stringParamName..'%s*=%s*"([^"]*)"')
 	end
 	return value
 end
@@ -332,8 +347,39 @@ end
 
 local function get_commas(value)
     local s = tostring(value)
-    local _, commas = string.gsub(s, ",", ",")
+    local _, commas = str_gsub(s, ",", ",")
     return commas or 0
+end
+
+local function collect_names(stringNamePrefix, stringCollectPostfix, stringPath)
+    local items = {}
+    local strVal = "{"
+	local stringCollectPostfix = stringCollectPostfix or "_0" --"flyPathName_0"
+    if not str_find(stringCollectPostfix, "%d+") then
+		return
+	end
+	local f = io_open(stringPath, "r")
+	if not f then
+		return
+	end
+	local data = f:read("*all")
+	f:close()
+	local _,_, i = str_find(stringCollectPostfix, "(%d+)")
+    i = i or 0
+	while true do
+		stringCollectPostfix = str_gsub(stringCollectPostfix, '%d+', i, 1)
+		local Name = stringNamePrefix .. stringCollectPostfix
+		if not str_find(data, Name) then
+			break
+		end
+        strVal = strVal..'"'..Name..'",'
+		t_insert(items, Name)
+		i=i+1
+	end
+    strVal = strVal.."}"
+    strVal = str_gsub(strVal, ',}', '}')
+    LOG("[I] Module Improved3D.lua === Collected Items: "..strVal)
+    return items
 end
 
 
@@ -466,7 +512,7 @@ function I3D:IsCameraLookAt(floatDrawVectorQuant, floatDrawVectorQuantMultiplier
         else
             trigger:Activate()
             pos, entity = coroutine.yield()
-		    GLOBAL_ENTITIES_ON_MAP = nil
+		    I3D.ENTITIES_ON_MAP = nil
             trigger:Deactivate()
         end
         I3D:IsCameraLookAt_Callback(pos, entity)
@@ -502,7 +548,7 @@ function I3D:CollectVehiclesByTeam(stringTeamName)
         local veh = GetEntityByName(stringTeamName.."_vehicle_"..i)
         if veh then
             --LOG(stringTeamName.."_vehicle_"..i)
-            table.insert(vehicles, veh)
+            t_insert(vehicles, veh)
         end
     end
     return vehicles
@@ -513,10 +559,18 @@ function I3D:CollectObjects(tableObjectNamesOrIDs)
     for i, name in ipairs(tableObjectNamesOrIDs) do
         local obj = getObj(name)
         if obj then
-            table.insert(objects, obj)
+            t_insert(objects, obj)
         end
     end
     return objects
+end
+
+function I3D:CollectCameraPaths(stringPathNamePrefix, stringCollectPostfix)
+    return collect_names(stringPathNamePrefix, stringCollectPostfix, "data\\maps\\"..GET_GLOBAL_OBJECT( "CurrentLevel" ):GetLevelName().."\\camera_paths.xml")
+end
+
+function I3D:CollectExternalPaths(stringPathNamePrefix, stringCollectPostfix)
+    return collect_names(stringPathNamePrefix, stringCollectPostfix, "data\\maps\\"..GET_GLOBAL_OBJECT( "CurrentLevel" ):GetLevelName().."\\external_paths.xml")
 end
 
 function I3D:SetObjectsAroundCircle(ListOfObjects, CenterPos, BaseRotation, Radius, StartAngleDeg, LookOutside, boolAutoRadius, boolPosAbsolute)
@@ -526,7 +580,7 @@ function I3D:SetObjectsAroundCircle(ListOfObjects, CenterPos, BaseRotation, Radi
     StartAngleDeg = StartAngleDeg or 0
     BaseRotation = BaseRotation or Quaternion(0,0,0,1)
 
-    local count = getn(ListOfObjects)
+    local count = t_getn(ListOfObjects)
     if 1 >= count then
         return { CenterPos }, false
     end
@@ -590,10 +644,28 @@ function I3D:SetObjectsAroundCircle(ListOfObjects, CenterPos, BaseRotation, Radi
         end
         pcall(function() object:setGodMode(0) end)
 
-        table.insert(Positions, pos)
+        t_insert(Positions, pos)
     end
 
     return Positions, true
+end
+
+function I3D:MoveObject(obj, stringPathName, floatMoveTime, stringMoverName)
+    if not obj then
+        return
+    end
+    local moverId = CreateNewObject { 
+        prototypeName = "cinematicMover", 
+        objName = stringMoverName or "" 
+    }
+    GetEntityByID(moverId):SetObjAndPath(obj:GetId(), stringPathName or "", floatMoveTime or 1)
+    return moverId
+end
+
+function I3D:MoveObjectsByPaths(tableObjects, tablePathNames, floatMoveTime, stringMoverName)
+    for i, object in ipairs(tableObjects) do
+        I3D:MoveObject(object, tablePathNames[i], floatMoveTime, stringMoverName and stringMoverName..i or "cinematicMover"..i)
+    end
 end
 
 function I3D:CVectorDot(v1, v2)
@@ -611,7 +683,7 @@ end
 function I3D:CVectorAverage(listVectors, boolY)
 	local AverageCVector = CVector(0,0,0)
 	local MyCVectors = listCVectorPozs or {CVector(1,0,0), CVector(0,1,0), CVector(0,0,1)}
-	local Skoka = getn(MyCVectors)
+	local Skoka = t_getn(MyCVectors)
 
 	local n = 1
 	local SummaX = 0
@@ -1229,13 +1301,25 @@ end
 
 function I3D:ParseCVector(CVector)
 	CVector = tostring(CVector)
-	if not string.find(CVector, "%(") then
+	if not str_find(CVector, "%(") then
 		CVector = "("..CVector..")"
 	end
-	if not string.find(CVector, ",") then
-		CVector = string.gsub(CVector, " ", ", ")
+	if not str_find(CVector, ",") then
+		CVector = str_gsub(CVector, " ", ", ")
 	end
 	local userdata = dostring("local p = CVector"..CVector.."; return p")
+	return userdata
+end
+
+function I3D:ParseQuaternion(Quaternion)
+	Quaternion = tostring(Quaternion)
+	if not str_find(Quaternion, "%(") then
+		Quaternion = "("..Quaternion..")"
+	end
+	if not str_find(Quaternion, ",") then
+		Quaternion = str_gsub(Quaternion, " ", ", ")
+	end
+	local userdata = dostring("local r = Quaternion"..Quaternion.."; return r")
 	return userdata
 end
 
@@ -1243,11 +1327,11 @@ function I3D:CallEntityInZone(posVector, floatZoneSize, boolGetsIntoCamera)
 	local Entity
 	local posVector = posVector or I3D:GetCameraPos()
 	local floatZoneSize = floatZoneSize or 10
-	GLOBAL_ENTITIES_ON_MAP = GLOBAL_ENTITIES_ON_MAP or I3D:GetAllEntities(boolGetsIntoCamera)
-	GLOBAL_ENTITIES_ON_MAP_SIZE = GLOBAL_ENTITIES_ON_MAP_SIZE or getn(GLOBAL_ENTITIES_ON_MAP)
+	I3D.ENTITIES_ON_MAP = I3D.ENTITIES_ON_MAP or I3D:GetAllEntities(boolGetsIntoCamera)
+	I3D.ENTITIES_ON_MAP_SIZE = I3D.ENTITIES_ON_MAP_SIZE or t_getn(I3D.ENTITIES_ON_MAP)
 	local v, z = posVector, floatZoneSize
 	local e = nil
-	for i, entity in ipairs(GLOBAL_ENTITIES_ON_MAP) do
+	for i, entity in ipairs(I3D.ENTITIES_ON_MAP) do
 		e = entity:GetPosition()
 		if ((v.x+z>=e.x) and (e.x>=v.x-z)) and ((v.y+z>=e.y) and (e.y>=v.y-z)) and ((v.z+z>=e.z) and (e.z>=v.z-z)) then
 			Entity = entity
@@ -1259,11 +1343,11 @@ function I3D:CallEntityInZone(posVector, floatZoneSize, boolGetsIntoCamera)
 end
 
 function I3D:GetAllEntities(boolGetsIntoCamera)
-	GLOBAL_ENTITIES_ON_MAP_SIZE = 0
-	GLOBAL_ENTITIES_ON_MAP = {}
+	I3D.ENTITIES_ON_MAP_SIZE = 0
+	I3D.ENTITIES_ON_MAP = {}
 	if g_ObjCont then
 		local size = g_ObjCont:size()
-		GLOBAL_ENTITIES_ON_MAP_SIZE = size
+		I3D.ENTITIES_ON_MAP_SIZE = size
 		for i=1, size do
 			local entity = GetEntityByID(i)
 			if entity then
@@ -1271,16 +1355,16 @@ function I3D:GetAllEntities(boolGetsIntoCamera)
 				if entity_pos and type(entity_pos)=="userdata" then
 					if boolGetsIntoCamera then
 						if I3D:IsInCameraView(entity_pos) then
-							table.insert(GLOBAL_ENTITIES_ON_MAP, entity)
+							t_insert(I3D.ENTITIES_ON_MAP, entity)
 						end
 					else
-						table.insert(GLOBAL_ENTITIES_ON_MAP, entity)
+						t_insert(I3D.ENTITIES_ON_MAP, entity)
 					end
 				end
 			end
 		end
 	end
-	return GLOBAL_ENTITIES_ON_MAP, GLOBAL_ENTITIES_ON_MAP_SIZE
+	return I3D.ENTITIES_ON_MAP, I3D.ENTITIES_ON_MAP_SIZE
 end
 
 
