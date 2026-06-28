@@ -7,7 +7,7 @@
 --               написанный специально для игры
 --             Ex Machina / Hard Truck Apocalypse
 --
---                     Improved3D v1.2
+--                     Improved3D v1.2.1
 -- 
 -- 
 -- ====================== Автор E Jet =========================
