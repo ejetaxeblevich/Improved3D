@@ -261,15 +261,15 @@
 
 local I3D = {}
 I3D.__index = I3D
-I3D.version = "v1.2"
+I3D.version = "v1.2.1"
 
-local str_find = strfind or string.find
-local str_gsub = strgsub or string.gsub
+local str_find = string.find
+local str_gsub = string.gsub
 
-local t_insert = tinsert or table.insert
-local t_getn = tgetn or table.getn
+local t_insert = table.insert
+local t_getn = table.getn
 
-local io_open = iopen or io.open
+local io_open = io.open
 
 
 LOG("[I] Init Module Improved3D.lua ...")
@@ -286,7 +286,7 @@ I3D.Default_Height = 1080
 if not g_ObjCont then
     --g_ObjCont = GET_GLOBAL_OBJECT "g_ObjContainer"
     LOG("[E] Module Improved3D.lua === g_ObjCont not found!!!")
-    return
+    return nil
 end
 
 
