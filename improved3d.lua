@@ -7,7 +7,7 @@
 --               написанный специально для игры
 --             Ex Machina / Hard Truck Apocalypse
 --
---                     Improved3D v1.2.1
+--                     Improved3D v1.3
 -- 
 -- 
 -- ====================== Автор E Jet =========================
@@ -157,6 +157,7 @@
 --       [M] bool IsInCameraView( CVector pos, table region )              /* Находится ли точка в поле зрения камеры. Границы захвата на экране region={} пропорционально с left, right, bottom, top (от -1 до 1) */
 --       [M] bool IsInCameraViewSquared( CVector pos, float ScopeCoeff )   /* Находится ли точка в поле зрения камеры. Границы захвата на экране в квадратном соотношении с ScopeCoeff (от -1 до 1) */
 --       [M] bool IsObjectInCameraView( object Entity, float ScopeCoeff, bool SquareScope )   /* Находится ли объект в поле зрения камеры. Объединяет между собой [IsInCameraViewSquared] и [IsInCameraView], где: Entity - объект как getObj() или GetEntityByName(); ScopeCoeff - коэффициент размера зоны захвата на экране (от 0 до 1, где 1 = весь экран). Может быть как region={} с left, right, top, bottom (от -1 до 1); SquareScope - квадратное соотношение зоны захвата, если true */
+--       [M] bool IsObjectInsideLocation( string LocationName, object Object, float MinLength )   /* Находится ли объект в локации. Удобная проверка когда, например, в локацию попадает игрок, а не караван его белонга. LocationName - имя локации; Object - объект/машина; MinLength - минимальное безопасное расстояние до локации, 5 метров если nil. */
 --       [M] CVector RotateAroundPoint( CVector 1, CVector 2, Quaternion or tableRotation )   /* Возвращает точку повернутого вектора2 вокруг вектора1 на угол tableRotation [{90,0,0}] или Quaternion() */
 --       [M] CVector LinearMoveAroundPoint( CVector 1_old, CVector 1_new, CVector 2_old )     /* Возвращает точку сдвинутого вектора2 линейно вместе с вектором1: 1_old = последняя сохраненная позиция вектора1; 1_new	= новая позиция вектора1; 2_old	= последняя сохраненная позиция вектора2 */
 --       [M] CVector AdjustDistanceBetweenVectors( CVector 1_old, CVector 2_old, float target_dist )     /* Возвращает точку вектора2 на нужном расстоянии от вектора1: 1_old = последняя сохраненная позиция вектора1; 2_old = последняя сохраненная позиция вектора2; target_dist = требуемое расстояние между векторами */
@@ -261,7 +262,7 @@
 
 local I3D = {}
 I3D.__index = I3D
-I3D.version = "v1.2.1"
+I3D.version = "v1.3"
 
 local str_find = string.find
 local str_gsub = string.gsub
@@ -1129,6 +1130,20 @@ function I3D:IsObjectInCameraView(objEntity, floatScopeCoeff, boolSquareScope)
 			bottom = type(floatScopeCoeff)=="table" and floatScopeCoeff.bottom or floatScopeCoeff
 		}
 		return I3D:IsInCameraView(entity_pos, region)
+	end
+end
+
+function I3D:IsObjectInsideLocation(stringLocationName, objectObject, floatMinLength)
+	local Object = objectObject --or GetPlayerVehicle()
+    local Loc = getObj(stringLocationName)
+	if Object and Loc then
+		local len = (Object:GetPosition() - Loc:GetPosition()):length()
+		local minlen = Loc:GetProperty("Radius").AsFloat
+		if (len) > (minlen + (floatMinLength or 5)) then
+			return false
+        else
+            return true
+		end
 	end
 end
 
