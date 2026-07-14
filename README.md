@@ -10,6 +10,8 @@
 [comment]: <> ( <img width="114" height="92" alt="image" src="https://github.com/user-attachments/assets/9ed52681-407d-44c1-8a02-6df8c0cbd563" />)
 [comment]: <> ( </div>)
 
+> [!WARNING]
+> Этот ReadMe акутален только для последней `v1.3.1` версии Improved3D!
 
 ## ЧТО ЭТО
 
@@ -142,7 +144,7 @@ Class I3D
     [M] table Positions SetObjectsAroundCircle( table ListOfObjects, CVector CenterPos, Quaternion BaseRotation, float Radius, float StartAngleDeg, bool or Quaternion LookOutside, bool AutoRadius, bool PosAbsolute )    /* Размещает выбранные объекты ListOfObjects по окружности в позиции CenterPos и вращением орбиты BaseRotation с начальным радиусом Radius, с углом смещения первого объекта по орбите на StartAngleDeg. Объекты смотрят наружу, если LookOutside = true, иначе внутрь, можно передать Quaternion для своего вращения. Объекты размещаются с динамическим радиусом, зависящим от длины конкретного объекта, если AutoRadius = true, иначе выравнивание по длине первого объекта в списке (чтобы не спавнились друг в друге). Размещает объекты с фиксированной высотой, если PosAbsolute = true, иначе на ландшафте */
     [M] Quaternion SetObjectLookAt( object SetAim, object GetAim, bool OnlyYaw, bool LockRoll )    /* Обращает взор первого объекта на позицию второго объекта - как аим камеры в катсценах. Для плавной работы необходимо вызывать каждый раз: objSetAim = объект, который нужно повернуть; objGetAim = объект или позиция, на которую надо "смотреть": может быть getObj(), CVector(), GetCameraPos(); boolOnlyYaw = применяется вращение только по оси Y (как турель), если true; boolLockRoll = запрещается вращение по оси Z (наклон), если true. Примеры: SetObjectLookAt(getObj("aim_object_name"), GetPlayerVehicle(), false, true) --> Аим на объект; SetObjectLookAt(getObj("aim_object_name"), GetCameraPos(), false, true) --> Аим на камеру */
     [M] void IsCameraLookAt( float DrawVectorQuant, float DrawVectorQuantMultiplier, float DrawVectorMinDistance, float DrawVectorMaxDistance, float DrawCatchZoneSize )        /* Смотрит ли куда-то камера? Бросает луч из камеры и пытается что-то "нащупать" (работает с триггером "IsCameraLookAt_VectorDrawer" или с IsCameraLookAt_VectorDrawer_f()): float DrawVectorQuant = шаг построения отрезка луча (в метрах); float DrawVectorQuantMultiplier = множитель шага построения отрезка луча (1.0); float DrawVectorMinDistance = минимальное расстояние, после которого идет захват объекта лучом (в метрах); float DrawVectorMaxDistance = максимальное расстояние захвата объектов лучом (в метрах); float DrawCatchZoneSize = размер зоны захвата объектов в точке луча (в метрах); Оригинальный lookAt у [GetCameraPos()] сломан. Пример использования: I3D:IsCameraLookAt(5,1,20,1000,5) */
-    [M] ??? IsCameraLookAt_Callback( CVector pos, Object entity )     /* Настраивается пользователем. Эта callback-функция вызывается GetCameraLookAtProcess, когда он завершается. Нужна как обработка ивента окончания работы луча. Аргументы возвращает сам GetCameraLookAtProcess: pos = CVector точки, куда смотрела камера на момент вызова IsCameraLookAt(); entity = Object сущности, какую захватил луч, может быть nil. Доступен такой же контроль, как через GetEntityByName() */
+    [M] ??? IsCameraLookAt_Callback( CVector pos, Object entity )     /* Настраивается пользователем. Эта callback-функция вызывается I3D.LookAtProcess, когда он завершается. Нужна как обработка ивента окончания работы луча. Аргументы возвращает сам I3D.LookAtProcess: pos = CVector точки, куда смотрела камера на момент вызова IsCameraLookAt(); entity = Object сущности, какую захватил луч, может быть nil. Доступен такой же контроль, как через GetEntityByName() */
     [M] bool IsInCameraView( CVector pos, table region )              /* Находится ли точка в поле зрения камеры. Границы захвата на экране region={} пропорционально с left, right, bottom, top (от -1 до 1) */
     [M] bool IsInCameraViewSquared( CVector pos, float ScopeCoeff )   /* Находится ли точка в поле зрения камеры. Границы захвата на экране в квадратном соотношении с ScopeCoeff (от -1 до 1) */
     [M] bool IsObjectInCameraView( object Entity, float ScopeCoeff, bool SquareScope )   /* Находится ли объект в поле зрения камеры. Объединяет между собой [IsInCameraViewSquared] и [IsInCameraView], где: Entity - объект как getObj() или GetEntityByName(); ScopeCoeff - коэффициент размера зоны захвата на экране (от 0 до 1, где 1 = весь экран). Может быть как region={} с left, right, top, bottom (от -1 до 1); SquareScope - квадратное соотношение зоны захвата, если true */
@@ -224,7 +226,7 @@ Class I3D
             entity = I3D:CallEntityInZone(pos, I3D.LookAtZoneSize)
         end
         if obstacle or entity or (skoka * I3D.LookAtDistance>=I3D.LookAtDistanceMax) then
-            coroutine.resume(_G["GetCameraLookAtProcess"], pos, entity)
+            coroutine.resume(I3D.LookAtProcess, pos, entity)
             trigger:Deactivate()
         end
     </script>
