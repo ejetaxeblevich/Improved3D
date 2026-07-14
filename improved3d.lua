@@ -7,7 +7,7 @@
 --               написанный специально для игры
 --             Ex Machina / Hard Truck Apocalypse
 --
---                     Improved3D v1.3
+--                     Improved3D v1.3.1
 -- 
 -- 
 -- ====================== Автор E Jet =========================
@@ -153,7 +153,7 @@
 --       [M] table Positions SetObjectsAroundCircle( table ListOfObjects, CVector CenterPos, Quaternion BaseRotation, float Radius, float StartAngleDeg, bool or Quaternion LookOutside, bool AutoRadius, bool PosAbsolute )    /* Размещает выбранные объекты ListOfObjects по окружности в позиции CenterPos и вращением орбиты BaseRotation с начальным радиусом Radius, с углом смещения первого объекта по орбите на StartAngleDeg. Объекты смотрят наружу, если LookOutside = true, иначе внутрь, можно передать Quaternion для своего вращения. Объекты размещаются с динамическим радиусом, зависящим от длины конкретного объекта, если AutoRadius = true, иначе выравнивание по длине первого объекта в списке (чтобы не спавнились друг в друге). Размещает объекты с фиксированной высотой, если PosAbsolute = true, иначе на ландшафте */
 --       [M] Quaternion SetObjectLookAt( object SetAim, object GetAim, bool OnlyYaw, bool LockRoll )    /* Обращает взор первого объекта на позицию второго объекта - как аим камеры в катсценах. Для плавной работы необходимо вызывать каждый раз: objSetAim = объект, который нужно повернуть; objGetAim = объект или позиция, на которую надо "смотреть": может быть getObj(), CVector(), GetCameraPos(); boolOnlyYaw = применяется вращение только по оси Y (как турель), если true; boolLockRoll = запрещается вращение по оси Z (наклон), если true. Примеры: SetObjectLookAt(getObj("aim_object_name"), GetPlayerVehicle(), false, true) --> Аим на объект; SetObjectLookAt(getObj("aim_object_name"), GetCameraPos(), false, true) --> Аим на камеру */
 --       [M] void IsCameraLookAt( float DrawVectorQuant, float DrawVectorQuantMultiplier, float DrawVectorMinDistance, float DrawVectorMaxDistance, float DrawCatchZoneSize )        /* Смотрит ли куда-то камера? Бросает луч из камеры и пытается что-то "нащупать" (работает с триггером "IsCameraLookAt_VectorDrawer" или с IsCameraLookAt_VectorDrawer_f()): float DrawVectorQuant = шаг построения отрезка луча (в метрах); float DrawVectorQuantMultiplier = множитель шага построения отрезка луча (1.0); float DrawVectorMinDistance = минимальное расстояние, после которого идет захват объекта лучом (в метрах); float DrawVectorMaxDistance = максимальное расстояние захвата объектов лучом (в метрах); float DrawCatchZoneSize = размер зоны захвата объектов в точке луча (в метрах); Оригинальный lookAt у [GetCameraPos()] сломан. Пример использования: I3D:IsCameraLookAt(5,1,20,1000,5) */
---       [M] ??? IsCameraLookAt_Callback( CVector pos, Object entity )     /* Настраивается пользователем. Эта callback-функция вызывается GetCameraLookAtProcess, когда он завершается. Нужна как обработка ивента окончания работы луча. Аргументы возвращает сам GetCameraLookAtProcess: pos = CVector точки, куда смотрела камера на момент вызова IsCameraLookAt(); entity = Object сущности, какую захватил луч, может быть nil. Доступен такой же контроль, как через GetEntityByName() */
+--       [M] ??? IsCameraLookAt_Callback( CVector pos, Object entity )     /* Настраивается пользователем. Эта callback-функция вызывается I3D.LookAtProcess, когда он завершается. Нужна как обработка ивента окончания работы луча. Аргументы возвращает сам I3D.LookAtProcess: pos = CVector точки, куда смотрела камера на момент вызова IsCameraLookAt(); entity = Object сущности, какую захватил луч, может быть nil. Доступен такой же контроль, как через GetEntityByName() */
 --       [M] bool IsInCameraView( CVector pos, table region )              /* Находится ли точка в поле зрения камеры. Границы захвата на экране region={} пропорционально с left, right, bottom, top (от -1 до 1) */
 --       [M] bool IsInCameraViewSquared( CVector pos, float ScopeCoeff )   /* Находится ли точка в поле зрения камеры. Границы захвата на экране в квадратном соотношении с ScopeCoeff (от -1 до 1) */
 --       [M] bool IsObjectInCameraView( object Entity, float ScopeCoeff, bool SquareScope )   /* Находится ли объект в поле зрения камеры. Объединяет между собой [IsInCameraViewSquared] и [IsInCameraView], где: Entity - объект как getObj() или GetEntityByName(); ScopeCoeff - коэффициент размера зоны захвата на экране (от 0 до 1, где 1 = весь экран). Может быть как region={} с left, right, top, bottom (от -1 до 1); SquareScope - квадратное соотношение зоны захвата, если true */
@@ -223,7 +223,7 @@
 --                 entity = I3D:CallEntityInZone(pos, I3D.LookAtZoneSize)
 --             end
 --             if obstacle or entity or (skoka * I3D.LookAtDistance>=I3D.LookAtDistanceMax) then
---                 coroutine.resume(_G["GetCameraLookAtProcess"], pos, entity)
+--                 coroutine.resume(I3D.LookAtProcess, pos, entity)
 --                 trigger:Deactivate()
 --             end
 --         </script>
@@ -262,13 +262,24 @@
 
 local I3D = {}
 I3D.__index = I3D
-I3D.version = "v1.3"
+I3D.version = "v1.3.1"
 
 local str_find = string.find
 local str_gsub = string.gsub
 
 local t_insert = table.insert
 local t_getn = table.getn
+
+local m_rad = math.rad
+local m_deg = math.deg
+local m_sin = math.sin
+local m_cos = math.cos
+local m_asin = math.asin
+local m_sqrt = math.sqrt
+local m_abs = math.abs
+local m_atan = math.atan
+local m_tan = math.tan
+local m_pi = math.pi
 
 local io_open = io.open
 
@@ -357,11 +368,11 @@ local function collect_names(stringNamePrefix, stringCollectPostfix, stringPath)
     local strVal = "{"
 	local stringCollectPostfix = stringCollectPostfix or "_0" --"flyPathName_0"
     if not str_find(stringCollectPostfix, "%d+") then
-		return
+		return nil
 	end
 	local f = io_open(stringPath, "r")
 	if not f then
-		return
+		return nil
 	end
 	local data = f:read("*all")
 	f:close()
@@ -411,14 +422,14 @@ end
 
 function I3D:IsUserdata(userdata)
     if type(userdata)=="userdata" or type(userdata)=="table" then
-        if I3D:IsCVector(userdata) then
+        if self:IsCVector(userdata) then
             return "cvector"
         end
-        if I3D:IsQuaternion(userdata) then
+        if self:IsQuaternion(userdata) then
             return "quaternion"
         end
-        local _, class = pcall(function() return userdata:GetClassName() end)
-        if class then
+        local s, class = pcall(function() return userdata:GetClassName() end)
+        if s and class then
             return class
         end
         if type(userdata)=="userdata" then
@@ -430,9 +441,9 @@ end
 
 function I3D:UpdateScreenInfo()
     local fov_deg, window_w, window_h = get_screen()
-    I3D.FOV = fov_deg
-    I3D.WINDOW_W = window_w
-    I3D.WINDOW_H = window_h
+    self.FOV = fov_deg
+    self.WINDOW_W = window_w
+    self.WINDOW_H = window_h
     local info = {
         fov = fov_deg, 
         width = window_w, 
@@ -445,36 +456,38 @@ I3D:UpdateScreenInfo()
 function I3D:SetObjectLookAt(objSetAim, objGetAim, boolOnlyYaw, boolLockRoll)
 	if not objSetAim then
         LOG("[E] Module Improved3D.lua === SetObjectLookAt(): Error objSetAim")
-		return
+		return nil
 	end
 
-	local sourcePos = objSetAim:GetPosition()
+    local s, entity_pos = pcall(function() return objSetAim:GetPosition() end)
+	local sourcePos = s and entity_pos or CVector(0,0,0)
 	local targetPos
 
 	if type(objGetAim)=="userdata" then
 		targetPos = objGetAim
 	elseif type(objGetAim)=="table" then
-		targetPos = objGetAim:GetPosition()
+        local s, entity_pos = pcall(function() return objGetAim:GetPosition() end)
+		targetPos = s and entity_pos or CVector(0,0,0)
 	else
         LOG("[E] Module Improved3D.lua === SetObjectLookAt(): Error objGetAim")
-		return
+		return nil
 	end
 
-	local direction = I3D:CVectorNormalize(targetPos - sourcePos)
+	local direction = self:CVectorNormalize(targetPos - sourcePos)
 
 	local baseForward = CVector(0,0,1)
-	local lookRotation = I3D:QuaternionFromTo(baseForward, direction)
+	local lookRotation = self:QuaternionFromTo(baseForward, direction)
 
 	if boolLockRoll then
-        local x, y, z = I3D:CVectorQuaternionToEuler(lookRotation)
-        lookRotation = I3D:CVectorEulerToQuaternion(y, 0, x)
+        local x, y, z = self:CVectorQuaternionToEuler(lookRotation)
+        lookRotation = self:CVectorEulerToQuaternion(y, 0, x)
     end
     if boolOnlyYaw then
-		local x, y, z = I3D:CVectorQuaternionToEuler(lookRotation)
-        lookRotation = I3D:CVectorEulerToQuaternion(y, 0, 0)
+		local x, y, z = self:CVectorQuaternionToEuler(lookRotation)
+        lookRotation = self:CVectorEulerToQuaternion(y, 0, 0)
     end
 
-	objSetAim:SetRotation(lookRotation)
+	pcall(function() objSetAim:SetRotation(lookRotation) end)
 
 	return lookRotation
 end
@@ -485,18 +498,18 @@ end
 
 function I3D:GetCameraRot()
     local _, rot = GetCameraPos()
-    return I3D:GetFixedQuaternion(rot)
+    return self:GetFixedQuaternion(rot)
 end
 
 function I3D:IsCameraLookAt(floatDrawVectorQuant, floatDrawVectorQuantMultiplier, floatDrawVectorMinDistance, floatDrawVectorMaxDistance, floatDrawCatchZoneSize)
-    I3D.LookAtCVector = I3D:GetCameraPos()
-    I3D.LookAtQuaternion = I3D:GetCameraRot()
-	I3D.LookAtStartCVector = I3D.LookAtCVector
-	I3D.LookAtDistance = floatDrawVectorQuant or 5
-	I3D.LookAtZoneSize = floatDrawCatchZoneSize or 5
-	I3D.LookAtDistanceCoeff = floatDrawVectorQuantMultiplier or 1.000
-	I3D.LookAtDistanceMin = floatDrawVectorMinDistance or 0
-	I3D.LookAtDistanceMax = floatDrawVectorMaxDistance or I3D:GetMapSize()
+    self.LookAtCVector = self:GetCameraPos()
+    self.LookAtQuaternion = self:GetCameraRot()
+	self.LookAtStartCVector = self.LookAtCVector
+	self.LookAtDistance = floatDrawVectorQuant or 5
+	self.LookAtZoneSize = floatDrawCatchZoneSize or 5
+	self.LookAtDistanceCoeff = floatDrawVectorQuantMultiplier or 1.000
+	self.LookAtDistanceMin = floatDrawVectorMinDistance or 0
+	self.LookAtDistanceMax = floatDrawVectorMaxDistance or self:GetMapSize()
 	
 	--сброс эффекта для демонстрации точки, куда смотрит камера
 	local LookAtEffect = getObj("IsCameraLookAtEffect")
@@ -504,37 +517,37 @@ function I3D:IsCameraLookAt(floatDrawVectorQuant, floatDrawVectorQuantMultiplier
 
 	TDeactivate("IsCameraLookAt_VectorDrawer")
 
-	_G["GetCameraLookAtProcess"] = coroutine.create(function()
-		I3D:GetAllEntities(true)
+	self.LookAtProcess = coroutine.create(function()
+		self:GetAllEntities(true)
         local pos, entity
         local trigger = getObj("IsCameraLookAt_VectorDrawer")
         if not trigger then
-            pos, entity = I3D:IsCameraLookAt_VectorDrawer_f() --вариант без триггера = луч строится мгновенно, но оч лагает
+            pos, entity = self:IsCameraLookAt_VectorDrawer_f() --вариант без триггера = луч строится мгновенно, но оч лагает
         else
             trigger:Activate()
             pos, entity = coroutine.yield()
-		    I3D.ENTITIES_ON_MAP = nil
+		    self.ENTITIES_ON_MAP = nil
             trigger:Deactivate()
         end
-        I3D:IsCameraLookAt_Callback(pos, entity)
+        self:IsCameraLookAt_Callback(pos, entity)
     end)
-	coroutine.resume(_G["GetCameraLookAtProcess"])
+	coroutine.resume(self.LookAtProcess)
 end
 function I3D:IsCameraLookAt_VectorDrawer_f()
 	local skoka = 0
 	local pos, obstacle, entity
 	repeat
 		skoka = skoka + 1
-		pos, obstacle = I3D:DrawVector(I3D.LookAtCVector, I3D.LookAtQuaternion, I3D.LookAtDistance)
-		I3D.LookAtDistance = I3D.LookAtDistance * I3D.LookAtDistanceCoeff
-		I3D.LookAtCVector = pos
-		if (skoka * I3D.LookAtDistance>=I3D.LookAtDistanceMin) then
-			entity = I3D:CallEntityInZone(pos, I3D.LookAtZoneSize)
+		pos, obstacle = self:DrawVector(self.LookAtCVector, self.LookAtQuaternion, self.LookAtDistance)
+		self.LookAtDistance = self.LookAtDistance * self.LookAtDistanceCoeff
+		self.LookAtCVector = pos
+		if (skoka * self.LookAtDistance >= self.LookAtDistanceMin) then
+			entity = self:CallEntityInZone(pos, self.LookAtZoneSize)
 		end
-		if obstacle or entity or (skoka * I3D.LookAtDistance>=I3D.LookAtDistanceMax) then
+		if obstacle or entity or (skoka * self.LookAtDistance >= self.LookAtDistanceMax) then
 			break
 		end
-	until obstacle or entity or (skoka * I3D.LookAtDistance>=I3D.LookAtDistanceMax)
+	until obstacle or entity or (skoka * self.LookAtDistance >= self.LookAtDistanceMax)
 	
 	return pos, entity
 end
@@ -543,7 +556,7 @@ function I3D:CollectVehiclesByTeam(stringTeamName)
     local vehicles = {}
     local team = getObj(stringTeamName)
     if not team then
-        return
+        return nil
     end
     for i=0, team:GetNumVehicles() or 1 do
         local veh = GetEntityByName(stringTeamName.."_vehicle_"..i)
@@ -577,9 +590,9 @@ end
 function I3D:SetObjectsAroundCircle(ListOfObjects, CenterPos, BaseRotation, Radius, StartAngleDeg, LookOutside, boolAutoRadius, boolPosAbsolute)
     --спасибо crtvxxx за помощь с math.
     --функция была переписана полностью, но уважение вечно!
-    Radius = Radius or 1
-    StartAngleDeg = StartAngleDeg or 0
-    BaseRotation = BaseRotation or Quaternion(0,0,0,1)
+    local Radius = Radius or 1
+    local StartAngleDeg = StartAngleDeg or 0
+    local BaseRotation = BaseRotation or Quaternion(0,0,0,1)
 
     local count = t_getn(ListOfObjects)
     if 1 >= count then
@@ -589,27 +602,28 @@ function I3D:SetObjectsAroundCircle(ListOfObjects, CenterPos, BaseRotation, Radi
     local angleStep = 360 / count
     local Positions = {}
 
-    local up = I3D:RotateCVectorByQuaternion(CVector(0,1,0), BaseRotation)
+    local up = self:RotateCVectorByQuaternion(CVector(0,1,0), BaseRotation)
 
     local objRadius = Radius
     for i, object in ipairs(ListOfObjects) do
         --авто радиус
         if boolAutoRadius or i==1 then
             objRadius = Radius
-            local _, size = pcall(function() return object:GetSize() end)
-            objRadius = objRadius + (size and size.z or 0) * 0.75
+            local s1, size_veh = pcall(function() return object:GetSize() end)
+            local s2, size_sg = pcall(function() return object:GetScale() end)
+            objRadius = objRadius + ((s1 and size_veh.z) or (s2 and size_sg) or 0) * 0.75
         end
 
         local angle = StartAngleDeg + (i-1) * angleStep
-        local rad = math.rad(angle)
+        local rad = m_rad(angle)
 
         --орбита
         local localOffset = CVector(
-            math.sin(rad) * objRadius,
+            m_sin(rad) * objRadius,
             0,
-            math.cos(rad) * objRadius
+            m_cos(rad) * objRadius
         )
-        local worldOffset = I3D:RotateCVectorByQuaternion(localOffset, BaseRotation)
+        local worldOffset = self:RotateCVectorByQuaternion(localOffset, BaseRotation)
         local pos = CVector(
             CenterPos.x + worldOffset.x,
             CenterPos.y + worldOffset.y,
@@ -618,29 +632,29 @@ function I3D:SetObjectsAroundCircle(ListOfObjects, CenterPos, BaseRotation, Radi
 
         --направление
         local forward
-        if LookOutside and I3D:IsQuaternion(LookOutside) then
-            forward = I3D:RotateCVectorByQuaternion(worldOffset, LookOutside)
+        if LookOutside and self:IsQuaternion(LookOutside) then
+            forward = self:RotateCVectorByQuaternion(worldOffset, LookOutside)
         elseif LookOutside then
             forward = worldOffset
         else
             forward = CVector(-worldOffset.x, -worldOffset.y, -worldOffset.z)
         end
-        forward = I3D:CVectorNormalize(forward)
+        forward = self:CVectorNormalize(forward)
 
-        local right = I3D:CVectorNormalize(I3D:CVectorCross(up, forward))
-        local realUp = I3D:CVectorCross(forward, right)
+        local right = self:CVectorNormalize(self:CVectorCross(up, forward))
+        local realUp = self:CVectorCross(forward, right)
 
-        local finalRot = I3D:QuaternionFromAxes(right, realUp, forward)
+        local finalRot = self:QuaternionFromAxes(right, realUp, forward)
 
         --назначение
         pcall(function() object:setGodMode(1) end)
         object:SetRotation(finalRot)
         if boolPosAbsolute then
-            object:SetPosition(pos)
+            pcall(function() object:SetPosition(pos) end)
         else
             local veh = pcall(function() object:SetGamePositionOnGround(pos) end)
             if not veh then
-                object:SetPosition(CVector(pos.x, g_ObjCont:GetHeight(pos.x, pos.z), pos.z))
+                pcall(function() object:SetPosition(CVector(pos.x, g_ObjCont:GetHeight(pos.x, pos.z), pos.z)) end)
             end
         end
         pcall(function() object:setGodMode(0) end)
@@ -665,7 +679,7 @@ end
 
 function I3D:MoveObjectsByPaths(tableObjects, tablePathNames, floatMoveTime, stringMoverName)
     for i, object in ipairs(tableObjects) do
-        I3D:MoveObject(object, tablePathNames[i], floatMoveTime, stringMoverName and stringMoverName..i or "cinematicMover"..i)
+        self:MoveObject(object, tablePathNames[i], floatMoveTime, stringMoverName and stringMoverName..i or "cinematicMover"..i)
     end
 end
 
@@ -718,31 +732,31 @@ function I3D:ItemsToCVectors(tableItems)
         elseif type(v)=="string" then
             local o = getObj(v)
             if o then
-                local _, v = pcall(function() return o:GetPosition() end)
-                vectors[i] = v
+                local s, v = pcall(function() return o:GetPosition() end)
+                vectors[i] = s and v or CVector(0,0,0)
             else
-                vectors[i] = I3D:ParseCVector(v)
+                vectors[i] = self:ParseCVector(v)
             end
         elseif type(v)=="table" then
-            local _, v = pcall(function() return v:GetPosition() end)
-            vectors[i] = v
+            local s, v = pcall(function() return v:GetPosition() end)
+            vectors[i] = s and v or CVector(0,0,0)
         end
     end
     return vectors
 end
 
 function I3D:CVectorNormalize(vec)
-	--local len = math.sqrt(vec.x^2 + vec.y^2 + vec.z^2)
+	--local len = m_sqrt(vec.x^2 + vec.y^2 + vec.z^2)
     local len = vec:length()
 	if len == 0 then return vec end
 	return CVector(vec.x / len, vec.y / len, vec.z / len)
 end
 
 function I3D:QuaternionFromTo(fromVec, toVec)
-	fromVec = I3D:CVectorNormalize(fromVec)
-	toVec = I3D:CVectorNormalize(toVec)
+	local fromVec = self:CVectorNormalize(fromVec)
+	local toVec = self:CVectorNormalize(toVec)
 
-	local dot = I3D:CVectorDot(fromVec, toVec)
+	local dot = self:CVectorDot(fromVec, toVec)
 
     if dot > 0.9999 then
         --почти совпадают, возвращаем идентичный поворот
@@ -752,19 +766,19 @@ function I3D:QuaternionFromTo(fromVec, toVec)
     if dot < -0.9999 then
         --почти противоположны, поворот на 180 вокруг любой оси, ортогональной fromVec
         --выбираем ось
-        local axis = I3D:CVectorCross(CVector(0,1,0), fromVec)
+        local axis = self:CVectorCross(CVector(0,1,0), fromVec)
         if (axis.x*axis.x + axis.y*axis.y + axis.z*axis.z) < 0.0001 then
             --up в этом случае близок к fromVec, используем другую ось
-            axis = I3D:CVectorCross(CVector(1,0,0), fromVec)
+            axis = self:CVectorCross(CVector(1,0,0), fromVec)
         end
-        axis = I3D:CVectorNormalize(axis)
+        axis = self:CVectorNormalize(axis)
         --quaternion для 180: w=0, xyz=axis
         return Quaternion(axis.x, axis.y, axis.z, 0)
     end
 
     --общий случай
-    local axis = I3D:CVectorCross(fromVec, toVec)
-    local s = math.sqrt((1 + dot) * 2)
+    local axis = self:CVectorCross(fromVec, toVec)
+    local s = m_sqrt((1 + dot) * 2)
     local invs = 1 / s
 
 	return Quaternion(
@@ -779,14 +793,14 @@ function I3D:QuaternionByLandscape(vec, rot)
     local tochka1 = vec
     tochka1.y = g_ObjCont:GetHeight(tochka1.x, tochka1.z)
 
-    local tochka2 = I3D:GetEndOfBeam(tochka1, rot, 1)
+    local tochka2 = self:GetEndOfBeam(tochka1, rot, 1)
     tochka2.y = g_ObjCont:GetHeight(tochka2.x, tochka2.z)
 
-    local direction = I3D:CVectorNormalize(tochka2 - tochka1)
-    local lookRotation = I3D:QuaternionFromTo(CVector(0,0,1), direction)
+    local direction = self:CVectorNormalize(tochka2 - tochka1)
+    local lookRotation = self:QuaternionFromTo(CVector(0,0,1), direction)
 
-    local x, y, z = I3D:CVectorQuaternionToEuler(lookRotation)
-    lookRotation = I3D:CVectorEulerToQuaternion(y, 0, x)
+    local x, y, z = self:CVectorQuaternionToEuler(lookRotation)
+    lookRotation = self:CVectorEulerToQuaternion(y, 0, x)
 
     return lookRotation
 end
@@ -848,25 +862,25 @@ function I3D:QuaternionFromAxes(right, up, forward)
     local q = Quaternion(0,0,0,1)
 
     if trace > 0 then
-        local s = math.sqrt(trace + 1.0) * 2
+        local s = m_sqrt(trace + 1.0) * 2
         q.w = 0.25 * s
         q.x = (m21 - m12) / s
         q.y = (m02 - m20) / s
         q.z = (m10 - m01) / s
     elseif m00 > m11 and m00 > m22 then
-        local s = math.sqrt(1.0 + m00 - m11 - m22) * 2
+        local s = m_sqrt(1.0 + m00 - m11 - m22) * 2
         q.w = (m21 - m12) / s
         q.x = 0.25 * s
         q.y = (m01 + m10) / s
         q.z = (m02 + m20) / s
     elseif m11 > m22 then
-        local s = math.sqrt(1.0 + m11 - m00 - m22) * 2
+        local s = m_sqrt(1.0 + m11 - m00 - m22) * 2
         q.w = (m02 - m20) / s
         q.x = (m01 + m10) / s
         q.y = 0.25 * s
         q.z = (m12 + m21) / s
     else
-        local s = math.sqrt(1.0 + m22 - m00 - m11) * 2
+        local s = m_sqrt(1.0 + m22 - m00 - m11) * 2
         q.w = (m10 - m01) / s
         q.x = (m02 + m20) / s
         q.y = (m12 + m21) / s
@@ -883,10 +897,10 @@ function I3D:RotateAroundPoint(v1, v2, rot)
 	--вращение векторов
     local rotatedDiff
     if type(rot)=="userdata" then
-        rotatedDiff = I3D:RotateCVectorByQuaternion(diff, rot)
+        rotatedDiff = self:RotateCVectorByQuaternion(diff, rot)
     else
-        local quat = I3D:CVectorEulerToQuaternion(rot[2], rot[1], rot[3])
-        rotatedDiff = I3D:RotateCVectorByQuaternion(diff, quat)
+        local quat = self:CVectorEulerToQuaternion(rot[2], rot[1], rot[3])
+        rotatedDiff = self:RotateCVectorByQuaternion(diff, quat)
     end
 
 	--третья точка по окружности
@@ -912,7 +926,7 @@ end
 function I3D:AdjustDistanceBetweenVectors(v1_old, v2_old, target_dist)
     --смещение и расстояние
     local diff = CVector(v2_old.x-v1_old.x, v2_old.y-v1_old.y, v2_old.z-v1_old.z)
-    --local current_dist = math.sqrt(diff.x^2 + diff.y^2 + diff.z^2)
+    --local current_dist = m_sqrt(diff.x^2 + diff.y^2 + diff.z^2)
     local current_dist = diff:length()
     
     if current_dist == target_dist then
@@ -944,10 +958,10 @@ function I3D:GetEndOfBeam(origin, quaternion, distance)
 	local baseDir = CVector(0,0,1)
 
 	--вращение базового направления
-	local rotatedDir = I3D:RotateCVectorByQuaternion(baseDir, quaternion)
+	local rotatedDir = self:RotateCVectorByQuaternion(baseDir, quaternion)
 
 	--нормализация для умножения
-	rotatedDir = I3D:CVectorNormalize(rotatedDir)
+	rotatedDir = self:CVectorNormalize(rotatedDir)
 
 	--точка окончания луча
 	return CVector(
@@ -959,10 +973,10 @@ end
 
 function I3D:GetFixedQuaternion(quaternion)
 	--реальный forward и up (движок может дать инверсию или полную хуйню)
-    local realForward = I3D:RotateCVectorByQuaternion(CVector(0,0,1), quaternion)
-	local realUp = I3D:RotateCVectorByQuaternion(CVector(0,1,0), quaternion)
-	realForward = I3D:CVectorNormalize(realForward)
-    realUp = I3D:CVectorNormalize(realUp)
+    local realForward = self:RotateCVectorByQuaternion(CVector(0,0,1), quaternion)
+	local realUp = self:RotateCVectorByQuaternion(CVector(0,1,0), quaternion)
+	realForward = self:CVectorNormalize(realForward)
+    realUp = self:CVectorNormalize(realUp)
 
     --если forward или up получился нулевой/сломанный то ставим стандартный
     if realForward.x == 0 and realForward.y == 0 and realForward.z == 0 then
@@ -977,17 +991,17 @@ function I3D:GetFixedQuaternion(quaternion)
 
     --если forward почти параллелен worldUp - происходит разрыв жопы
     --опорный up в критических случаях
-    local dot = I3D:CVectorDot(forward, worldUp)
-    if math.abs(dot) > 0.999 then
+    local dot = self:CVectorDot(forward, worldUp)
+    if m_abs(dot) > 0.999 then
         worldUp = CVector(1,0,0) --альтернативный up
     end
 
     --правый вектор
-    local right = I3D:CVectorCross(worldUp, forward)
-    right = I3D:CVectorNormalize(right)
+    local right = self:CVectorCross(worldUp, forward)
+    right = self:CVectorNormalize(right)
 
     --ортонормальный up
-    local up = I3D:CVectorCross(forward, right)
+    local up = self:CVectorCross(forward, right)
 
     --матрица
     local m00 = right.x
@@ -1004,25 +1018,25 @@ function I3D:GetFixedQuaternion(quaternion)
     local x,y,z,w = 0,0,0,1
 
     if trace > 0 then
-        local s = math.sqrt(trace + 1.0) * 2
+        local s = m_sqrt(trace + 1.0) * 2
         w = 0.25 * s
         x = (m21 - m12) / s
         y = (m02 - m20) / s
         z = (m10 - m01) / s
     elseif (m00 > m11) and (m00 > m22) then
-        local s = math.sqrt(1.0 + m00 - m11 - m22) * 2
+        local s = m_sqrt(1.0 + m00 - m11 - m22) * 2
         w = (m21 - m12) / s
         x = 0.25 * s
         y = (m01 + m10) / s
         z = (m02 + m20) / s
     elseif (m11 > m22) then
-        local s = math.sqrt(1.0 + m11 - m00 - m22) * 2
+        local s = m_sqrt(1.0 + m11 - m00 - m22) * 2
         w = (m02 - m20) / s
         x = (m01 + m10) / s
         y = 0.25 * s
         z = (m12 + m21) / s
     else
-        local s = math.sqrt(1.0 + m22 - m00 - m11) * 2
+        local s = m_sqrt(1.0 + m22 - m00 - m11) * 2
         w = (m10 - m01) / s
         x = (m02 + m20) / s
         y = (m12 + m21) / s
@@ -1036,21 +1050,21 @@ function I3D:IsInCameraView(pos, region)
     --region = { left=-0.5, right=0.5, top=0.5, bottom=-0.5 }
 
     --позиция и ориентация камеры
-    local camera_pos, camera_quat = I3D:GetCameraPos(), I3D:GetCameraRot()
+    local camera_pos, camera_quat = self:GetCameraPos(), self:GetCameraRot()
 
     --воздать если нету
     local pos = pos or CVector(0,0,0)
-    local fov_deg = I3D.FOV or I3D:UpdateScreenInfo().fov
-	local window_w = I3D.WINDOW_W or I3D:UpdateScreenInfo().width
-	local window_h = I3D.WINDOW_H or I3D:UpdateScreenInfo().height
+    local fov_deg = self.FOV or self:UpdateScreenInfo().fov
+	local window_w = self.WINDOW_W or self:UpdateScreenInfo().width
+	local window_h = self.WINDOW_H or self:UpdateScreenInfo().height
 
     --оси камеры из quaternion
-    local right, up, forward = I3D:QuaternionToAxes(camera_quat)
+    local right, up, forward = self:QuaternionToAxes(camera_quat)
 
     --вертикальный fov через aspect ratio
     local aspect = window_h / window_w
-    local hFOV = math.rad(fov_deg)
-    local vFOV = 2 * math.atan(math.tan(hFOV * 0.5) * aspect)
+    local hFOV = m_rad(fov_deg)
+    local vFOV = 2 * m_atan(m_tan(hFOV * 0.5) * aspect)
 
     --вектор к позиции
     local to_entity = CVector(
@@ -1061,9 +1075,9 @@ function I3D:IsInCameraView(pos, region)
 
     --необязательно нормализовать!
     --потому что atan2(x,z) и atan2(y,z) работают корректно для любых масштабов
-    local x = I3D:CVectorDot(right,   to_entity)
-    local y = I3D:CVectorDot(up,      to_entity)
-    local z = I3D:CVectorDot(forward, to_entity)
+    local x = self:CVectorDot(right,   to_entity)
+    local y = self:CVectorDot(up,      to_entity)
+    local z = self:CVectorDot(forward, to_entity)
 
     --если объект за камерой
     if z <= 0 then 
@@ -1074,13 +1088,13 @@ function I3D:IsInCameraView(pos, region)
         local half_hFOV = hFOV * 0.5
         local half_vFOV = vFOV * 0.5
 
-        local horizontal_angle = math.abs(math.atan2(x, z))
-        local vertical_angle   = math.abs(math.atan2(y, z))
+        local horizontal_angle = m_abs(m_atan2(x, z))
+        local vertical_angle   = m_abs(m_atan2(y, z))
 
         return (horizontal_angle <= half_hFOV) and (vertical_angle <= half_vFOV)
     else
-        local tan_h = math.tan(hFOV * 0.5)
-        local tan_v = math.tan(vFOV * 0.5)
+        local tan_h = m_tan(hFOV * 0.5)
+        local tan_v = m_tan(vFOV * 0.5)
 
         --NDC (от -1 до +1)
         local ndc_x = x / (z * tan_h)
@@ -1092,12 +1106,12 @@ function I3D:IsInCameraView(pos, region)
 end
 
 function I3D:IsInCameraViewSquared(pos, floatScopeCoeff)
-	floatScopeCoeff = floatScopeCoeff or 1
+	local floatScopeCoeff = floatScopeCoeff or 1
 
 	local pos = pos or CVector(0,0,0)
-    local fov_deg = I3D.FOV or I3D:UpdateScreenInfo().fov
-	local window_w = I3D.WINDOW_W or I3D:UpdateScreenInfo().width
-	local window_h = I3D.WINDOW_H or I3D:UpdateScreenInfo().height
+    local fov_deg = self.FOV or self:UpdateScreenInfo().fov
+	local window_w = self.WINDOW_W or self:UpdateScreenInfo().width
+	local window_h = self.WINDOW_H or self:UpdateScreenInfo().height
 
 	local aspect = window_w / window_h
 
@@ -1108,7 +1122,7 @@ function I3D:IsInCameraViewSquared(pos, floatScopeCoeff)
 		bottom = -floatScopeCoeff
 	}
 
-	return I3D:IsInCameraView(pos, region)
+	return self:IsInCameraView(pos, region)
 end
 
 function I3D:IsObjectInCameraView(objEntity, floatScopeCoeff, boolSquareScope)
@@ -1116,12 +1130,13 @@ function I3D:IsObjectInCameraView(objEntity, floatScopeCoeff, boolSquareScope)
 		return nil
 	end
 
-	floatScopeCoeff = floatScopeCoeff or 1
+	local floatScopeCoeff = floatScopeCoeff or 1
 
-	local entity_pos = objEntity:GetPosition() or CVector(0,0,0)
+    local s, entity_pos = pcall(function() return objEntity:GetPosition() end)
+	entity_pos = s and entity_pos or CVector(0,0,0)
 
 	if boolSquareScope and not type(floatScopeCoeff)=="table" then
-		return I3D:IsInCameraViewSquared(entity_pos, floatScopeCoeff)
+		return self:IsInCameraViewSquared(entity_pos, floatScopeCoeff)
 	else
 		local region = {
 			left = type(floatScopeCoeff)=="table" and floatScopeCoeff.left or floatScopeCoeff, 
@@ -1129,7 +1144,7 @@ function I3D:IsObjectInCameraView(objEntity, floatScopeCoeff, boolSquareScope)
 			top = type(floatScopeCoeff)=="table" and floatScopeCoeff.top or floatScopeCoeff, 
 			bottom = type(floatScopeCoeff)=="table" and floatScopeCoeff.bottom or floatScopeCoeff
 		}
-		return I3D:IsInCameraView(entity_pos, region)
+		return self:IsInCameraView(entity_pos, region)
 	end
 end
 
@@ -1137,7 +1152,8 @@ function I3D:IsObjectInsideLocation(stringLocationName, objectObject, floatMinLe
 	local Object = objectObject --or GetPlayerVehicle()
     local Loc = getObj(stringLocationName)
 	if Object and Loc then
-		local len = (Object:GetPosition() - Loc:GetPosition()):length()
+        local s, entity_pos = pcall(function() return Object:GetPosition() end)
+		local len = s and (entity_pos - Loc:GetPosition()):length() or 0
 		local minlen = Loc:GetProperty("Radius").AsFloat
 		if (len) > (minlen + (floatMinLength or 5)) then
 			return false
@@ -1167,12 +1183,12 @@ end
 
 function I3D:DrawVector(origin, quaternion, distance)
 	local obstacle = false
-	local pos = I3D:GetEndOfBeam(origin, quaternion, distance)
+	local pos = self:GetEndOfBeam(origin, quaternion, distance)
 	if g_ObjCont:GetHeight(pos.x, pos.z) >= pos.y then
 		--println("vector undergrounded!")
 		obstacle = true
 	end
-	local mapsize = I3D:GetMapSize()
+	local mapsize = self:GetMapSize()
 	if (pos.x>=mapsize or pos.y>=mapsize or pos.z>=mapsize) or (0>=pos.x or 0>=pos.y or 0>=pos.z) then
 		--println("vector dropped out of the world!")
 		obstacle = true
@@ -1184,16 +1200,16 @@ function I3D:CVectorEulerToQuaternion(pitch, yaw, roll, bLOG)
 	if bLOG==true then
         LOG("[I] Module Improved3D.lua === CVectorEulerToQuaternion(): Input x: "..tostring(yaw)..", y: "..tostring(pitch)..", z: "..tostring(roll))
 	end
-	local radPitch = math.rad(pitch)
-	local radYaw = math.rad(yaw)
-	local radRoll = math.rad(roll)
+	local radPitch = m_rad(pitch)
+	local radYaw = m_rad(yaw)
+	local radRoll = m_rad(roll)
 
-	local cy = math.cos(radYaw * 0.5)
-	local sy = math.sin(radYaw * 0.5)
-	local cp = math.cos(radPitch * 0.5)
-	local sp = math.sin(radPitch * 0.5)
-	local cr = math.cos(radRoll * 0.5)
-	local sr = math.sin(radRoll * 0.5)
+	local cy = m_cos(radYaw * 0.5)
+	local sy = m_sin(radYaw * 0.5)
+	local cp = m_cos(radPitch * 0.5)
+	local sp = m_sin(radPitch * 0.5)
+	local cr = m_cos(radRoll * 0.5)
+	local sr = m_sin(radRoll * 0.5)
 
 	local qw = cr * cp * cy + sr * sp * sy
 	local qx = sr * cp * cy - cr * sp * sy
@@ -1217,24 +1233,24 @@ function I3D:CVectorQuaternionToEuler(quaternion, bLOG)
     --"Настоящий" yaw (вокруг Y, по горизонтали)
     local siny_cosp = 2 * (w * y + z * x)
     local cosy_cosp = 1 - 2 * (x * x + y * y)
-    local yaw = math.atan2(siny_cosp, cosy_cosp)
+    local yaw = m_atan2(siny_cosp, cosy_cosp)
 
     --"Настоящий" pitch (вверх-вниз)
     local sinp = 2 * (w * x - y * z)
     if sinp > 1 then sinp = 1 end
     if sinp < -1 then sinp = -1 end
-    local pitch = math.asin(sinp)
+    local pitch = m_asin(sinp)
 
     --roll (вокруг Z - наклон головы)
     local sinr_cosp = 2 * (w * z + x * y)
     local cosr_cosp = 1 - 2 * (y * y + z * z)
-    local roll = math.atan2(sinr_cosp, cosr_cosp)
+    local roll = m_atan2(sinr_cosp, cosr_cosp)
 
 	if bLOG==true then
-		LOG("[I] Module Improved3D.lua === CVectorQuaternionToEuler(): Got x: "..math.deg(yaw)..", y: "..math.deg(pitch)..", z: "..math.deg(roll))
+		LOG("[I] Module Improved3D.lua === CVectorQuaternionToEuler(): Got x: "..m_deg(yaw)..", y: "..m_deg(pitch)..", z: "..m_deg(roll))
 	end
 
-	return math.deg(pitch), math.deg(yaw), math.deg(roll)
+	return m_deg(pitch), m_deg(yaw), m_deg(roll)
 end
 
 function I3D:EulerToQuaternion(x,y,z,bLOG)
@@ -1242,9 +1258,9 @@ function I3D:EulerToQuaternion(x,y,z,bLOG)
 		LOG("[I] Module Improved3D.lua === EulerToQuaternion(): Input x: "..tostring(x)..", y: "..tostring(y)..", z: "..tostring(z))
 	end
 	--Преобразуем углы Эйлера из градусов в радианы
-    local roll_rad = math.rad(x)
-    local pitch_rad = math.rad(y)
-    local yaw_rad = math.rad(z)
+    local roll_rad = m_rad(x)
+    local pitch_rad = m_rad(y)
+    local yaw_rad = m_rad(z)
 
     --Вычисляем половины углов
     local halfRoll = roll_rad * 0.5
@@ -1252,12 +1268,12 @@ function I3D:EulerToQuaternion(x,y,z,bLOG)
     local halfYaw = yaw_rad * 0.5
 
     --Вычисляем синусы и косинусы половины углов
-    local cosRoll = math.cos(halfRoll)
-    local sinRoll = math.sin(halfRoll)
-    local cosPitch = math.cos(halfPitch)
-    local sinPitch = math.sin(halfPitch)
-    local cosYaw = math.cos(halfYaw)
-    local sinYaw = math.sin(halfYaw)
+    local cosRoll = m_cos(halfRoll)
+    local sinRoll = m_sin(halfRoll)
+    local cosPitch = m_cos(halfPitch)
+    local sinPitch = m_sin(halfPitch)
+    local cosYaw = m_cos(halfYaw)
+    local sinYaw = m_sin(halfYaw)
 
     --Вычисляем кватернион
     local w = cosRoll * cosPitch * cosYaw + sinRoll * sinPitch * sinYaw
@@ -1286,36 +1302,36 @@ function I3D:QuaternionToEuler(quaternion,bLOG)
 	--println("y "..y)
 	--println("z "..z)
 	--println("w "..w)
-    local pitch = math.asin(2 * (w * y - z * x))
+    local pitch = m_asin(2 * (w * y - z * x))
 
     --Проверяем, не вызывает ли это выход за пределы -1 и 1
 	--println("pit "..pitch)
-	--println("abs "..math.abs(pitch))
-    if (math.abs(pitch) == (math.pi / 2)) or (math.abs(pitch) == -(math.pi / 2)) then
-	--if math.abs(pitch) == (math.pi / 2) then
-    --if math.abs(pitch)>=(-1.0000000001) or (-1.0000000001)>=math.abs(pitch) then
+	--println("abs "..m_abs(pitch))
+    if (m_abs(pitch) == (m_pi / 2)) or (m_abs(pitch) == -(m_pi / 2)) then
+	--if m_abs(pitch) == (m_pi / 2) then
+    --if m_abs(pitch)>=(-1.0000000001) or (-1.0000000001)>=m_abs(pitch) then
         local roll = 0
-        local yaw = math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
+        local yaw = m_atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
         --Возвращаем углы Эйлера в градусах
 		--println("qqqqqqqqqqqqqqqqqqq")
 		if bLOG==true then
-			LOG("[I] Module Improved3D.lua === QuaternionToEuler(): Got x: "..math.deg(roll)..", y: "..math.deg(pitch)..", z: "..math.deg(yaw))
+			LOG("[I] Module Improved3D.lua === QuaternionToEuler(): Got x: "..m_deg(roll)..", y: "..m_deg(pitch)..", z: "..m_deg(yaw))
 		end
-		return math.deg(roll), math.deg(pitch), math.deg(yaw)
+		return m_deg(roll), m_deg(pitch), m_deg(yaw)
     end
 
-    local roll = math.atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))
-    local yaw = math.atan2(2 * (w * z + x * y), 1 - 2 * (z * z + y * y))
+    local roll = m_atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))
+    local yaw = m_atan2(2 * (w * z + x * y), 1 - 2 * (z * z + y * y))
 
     --Возвращаем углы Эйлера в градусах
 	if bLOG==true then
-		LOG("[I] Module Improved3D.lua === QuaternionToEuler(): Got x: "..math.deg(roll)..", y: "..math.deg(pitch)..", z: "..math.deg(yaw))
+		LOG("[I] Module Improved3D.lua === QuaternionToEuler(): Got x: "..m_deg(roll)..", y: "..m_deg(pitch)..", z: "..m_deg(yaw))
 	end
-    return math.deg(roll), math.deg(pitch), math.deg(yaw)
+    return m_deg(roll), m_deg(pitch), m_deg(yaw)
 end
 
 function I3D:ParseCVector(CVector)
-	CVector = tostring(CVector)
+	local CVector = tostring(CVector)
 	if not str_find(CVector, "%(") then
 		CVector = "("..CVector..")"
 	end
@@ -1327,7 +1343,7 @@ function I3D:ParseCVector(CVector)
 end
 
 function I3D:ParseQuaternion(Quaternion)
-	Quaternion = tostring(Quaternion)
+	local Quaternion = tostring(Quaternion)
 	if not str_find(Quaternion, "%(") then
 		Quaternion = "("..Quaternion..")"
 	end
@@ -1340,15 +1356,15 @@ end
 
 function I3D:CallEntityInZone(posVector, floatZoneSize, boolGetsIntoCamera)
 	local Entity
-	local posVector = posVector or I3D:GetCameraPos()
+	local posVector = posVector or self:GetCameraPos()
 	local floatZoneSize = floatZoneSize or 10
-	I3D.ENTITIES_ON_MAP = I3D.ENTITIES_ON_MAP or I3D:GetAllEntities(boolGetsIntoCamera)
-	I3D.ENTITIES_ON_MAP_SIZE = I3D.ENTITIES_ON_MAP_SIZE or t_getn(I3D.ENTITIES_ON_MAP)
+	self.ENTITIES_ON_MAP = self.ENTITIES_ON_MAP or self:GetAllEntities(boolGetsIntoCamera)
+	self.ENTITIES_ON_MAP_SIZE = self.ENTITIES_ON_MAP_SIZE or t_getn(self.ENTITIES_ON_MAP)
 	local v, z = posVector, floatZoneSize
 	local e = nil
-	for i, entity in ipairs(I3D.ENTITIES_ON_MAP) do
-		e = entity:GetPosition()
-		if ((v.x+z>=e.x) and (e.x>=v.x-z)) and ((v.y+z>=e.y) and (e.y>=v.y-z)) and ((v.z+z>=e.z) and (e.z>=v.z-z)) then
+	for i, entity in ipairs(self.ENTITIES_ON_MAP) do
+		local s, e = pcall(function() return entity:GetPosition() end)
+		if s and ((v.x+z>=e.x) and (e.x>=v.x-z)) and ((v.y+z>=e.y) and (e.y>=v.y-z)) and ((v.z+z>=e.z) and (e.z>=v.z-z)) then
 			Entity = entity
 			break
 		end
@@ -1358,28 +1374,28 @@ function I3D:CallEntityInZone(posVector, floatZoneSize, boolGetsIntoCamera)
 end
 
 function I3D:GetAllEntities(boolGetsIntoCamera)
-	I3D.ENTITIES_ON_MAP_SIZE = 0
-	I3D.ENTITIES_ON_MAP = {}
+	self.ENTITIES_ON_MAP_SIZE = 0
+	self.ENTITIES_ON_MAP = {}
 	if g_ObjCont then
 		local size = g_ObjCont:size()
-		I3D.ENTITIES_ON_MAP_SIZE = size
+		self.ENTITIES_ON_MAP_SIZE = size
 		for i=1, size do
 			local entity = GetEntityByID(i)
 			if entity then
-				local _, entity_pos = pcall(function() return entity:GetPosition() end)
-				if entity_pos and type(entity_pos)=="userdata" then
+				local s, entity_pos = pcall(function() return entity:GetPosition() end)
+				if s and entity_pos and type(entity_pos)=="userdata" then
 					if boolGetsIntoCamera then
-						if I3D:IsInCameraView(entity_pos) then
-							t_insert(I3D.ENTITIES_ON_MAP, entity)
+						if self:IsInCameraView(entity_pos) then
+							t_insert(self.ENTITIES_ON_MAP, entity)
 						end
 					else
-						t_insert(I3D.ENTITIES_ON_MAP, entity)
+						t_insert(self.ENTITIES_ON_MAP, entity)
 					end
 				end
 			end
 		end
 	end
-	return I3D.ENTITIES_ON_MAP, I3D.ENTITIES_ON_MAP_SIZE
+	return self.ENTITIES_ON_MAP, self.ENTITIES_ON_MAP_SIZE
 end
 
 
