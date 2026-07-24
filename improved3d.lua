@@ -174,6 +174,7 @@
 --       [M] table GetAllEntities( bool GetsIntoCamera )         /* Возвращает все объекты на карте, что имеют позиции CVector и их количество: bool GetsIntoCamera = захватывает только объекты в поле зрения камеры, если true */
 --
 --       /* Помощь в расчетах */
+--       [M] void p()     /* Аналог таргемовского p(). Принтит в лог игры Point для пути движения камеры camera_paths.xml без запятых */
 --       [M] bool IsCVector( userdata )      /* Проверяет значение юзердаты, что это координаты CVector */
 --       [M] bool IsQuaternion( userdata )   /* Проверяет значение юзердаты, что это вращение Quaternion */
 --       [M] string IsUserdata( userdata )   /* Проверяет значение юзердаты. Объединяет [IsCVector()] и [IsQuaternion()], возвращая строковые значения для сравнения: ["cvector"], ["quaternion"], ["userdata"], ["not userdata"]. Бонусом может вернуть строкой класс объекта */
@@ -256,6 +257,8 @@
 --
 -- E Jet: Благодарность rusya_27 за обратную связь!
 --
+-- E Jet: Благодарность Gnome627 за функцию I3D:p()!
+--
 -- ============================================================
 -- ============================================================
 
@@ -270,6 +273,7 @@ I3D.version = "v1.4"
 
 local str_find = string.find
 local str_gsub = string.gsub
+local str_format = string.format
 
 local t_insert = table.insert
 local t_getn = table.getn
@@ -404,6 +408,17 @@ end
 -- //////////////////////// GLOBAL MODULE FUNCTIONS //////////////////////////////
 
 -- ///////////////////////////////////////////////////////////////////////////////
+
+
+
+function I3D:p()
+    local pos, rot = self:GetCameraPos()
+    
+    local posStr = str_format("%.3f %.3f %.3f", pos.x, pos.y, pos.z)
+    local rotStr = str_format("%.3f %.3f %.3f %.3f", rot.x, rot.y, rot.z, rot.w)
+
+    LOG('[I] Module Improved3D.lua === <Point coord="'..posStr..'" rotation="'..rotStr..'" />')
+end
 
 
 function I3D:IsCVector(userdata)
