@@ -165,6 +165,7 @@ Class I3D
     [M] table GetAllEntities( bool GetsIntoCamera )         /* Возвращает все объекты на карте, что имеют позиции CVector и их количество: bool GetsIntoCamera = захватывает только объекты в поле зрения камеры, если true */
 
     /* Помощь в расчетах */
+    [M] void p()     /* Аналог таргемовского p(). Принтит в лог игры Point для пути движения камеры camera_paths.xml без запятых */
     [M] bool IsCVector( userdata )      /* Проверяет значение юзердаты, что это координаты CVector */
     [M] bool IsQuaternion( userdata )   /* Проверяет значение юзердаты, что это вращение Quaternion */
     [M] string IsUserdata( userdata )   /* Проверяет значение юзердаты. Объединяет [IsCVector()] и [IsQuaternion()], возвращая строковые значения для сравнения: ["cvector"], ["quaternion"], ["userdata"], ["not userdata"]. Бонусом может вернуть строкой класс объекта */
