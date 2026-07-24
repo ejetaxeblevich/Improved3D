@@ -7,7 +7,7 @@
 --               написанный специально для игры
 --             Ex Machina / Hard Truck Apocalypse
 --
---                     Improved3D v1.3.1
+--                     Improved3D v1.4
 -- 
 -- 
 -- ====================== Автор E Jet =========================
@@ -184,7 +184,9 @@
 --       [M] void MoveObjectsByPaths( table Objects, table PathNames, float MoveTime, string MoverName )   /* Выбранные объекты начинают движение по каждому своему пути, обертка [MoveObject()] под несколько объектов. Количество элементов в списках должно быть одинаковым */
 --       [M] CVector GetCameraPos()      /* Обертка стандартного [GetCameraPos()] под координаты */
 --       [M] Quaternion GetCameraRot()   /* Возвращает исправленное вращение камеры от [GetCameraPos()]. Оригинальное вращение зеркально от полюсов, которое нормально работает для камеры в катсценах, но не для объектов */
---       [M] CVector ParseCVector( string CVector )     /* Возвращает CVector из строки с CVector (юзердату) */
+--       [M] CVector GetCameraPosLinked( object Object )   /* Возвращает точку камеры относительно объекта/машины, полезно для FlyLinked */
+--       [M] CVector GetCVectorDifference( CVector origin, CVector linkedPosition )  /* Возвращает разницу между двумя CVector */
+--       [M] CVector ParseCVector( string CVector )        /* Возвращает CVector из строки с CVector (юзердату) */
 --       [M] Quaternion ParseQuaternion( string Quaternion )      /* Возвращает Quaternion из строки с Quaternion (юзердату) */
 --       [M] table Positions ItemsToCVectors( table Items )       /* Преобразует список из разных элементов в список с их CVector (юзердаты). Элементами могут быть: ["MyVehicleName"], [getObj()], ["1 2 3"], [CVector(1,2,3)] */
 --       [M] table Objects CollectVehiclesByTeam( string TeamName )   /* Возвращает список найденных машин из команды по имени TeamName */
@@ -252,6 +254,8 @@
 -- функция и была переписана полностью, но уважение вечно! Этот
 -- парень выручил целую фичу!
 --
+-- E Jet: Благодарность rusya_27 за обратную связь!
+--
 -- ============================================================
 -- ============================================================
 
@@ -262,7 +266,7 @@
 
 local I3D = {}
 I3D.__index = I3D
-I3D.version = "v1.3.1"
+I3D.version = "v1.4"
 
 local str_find = string.find
 local str_gsub = string.gsub
@@ -969,6 +973,28 @@ function I3D:GetEndOfBeam(origin, quaternion, distance)
 	    origin.y + rotatedDir.y * distance,
 	    origin.z + rotatedDir.z * distance
 	)
+end
+
+function I3D:GetCVectorDifference(origin, linkedPosition)
+    --смещение векторов
+    return CVector(
+        linkedPosition.x - origin.x, 
+        linkedPosition.y - origin.y, 
+        linkedPosition.z - origin.z
+    )
+end
+
+function I3D:GetCameraPosLinked(linkedObject)
+    if not linkedObject then
+        return
+    end
+
+    --линкуемый объект/машина для катсцены с FlyLinked
+    local origin = linkedObject:GetPosition()
+
+    local linkedPos = self:GetCVectorDifference(origin, self:GetCameraPos())
+
+    return linkedPos
 end
 
 function I3D:GetFixedQuaternion(quaternion)
