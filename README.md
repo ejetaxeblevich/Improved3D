@@ -641,7 +641,7 @@ Class I3D
 ## Благодарность 
 
 - ***crtvxxx*** за помощь с `math.`! В импортированной функции из ExplorerMod на спавн по окружности я впервые столкнулся с проблемой МАТЕМАТИКИ! Пусть функция и была переписана полностью, но уважение вечно! Этот парень выручил целую фичу!
-- ***rusya_27*** за обратную связь и выявление багов!
+- ***Rusya_27*** за обратную связь и выявление багов!
 - ***Gnome627*** за функцию `I3D:p()`!
 
 <a href="#top">Наверх ↑</a>
@@ -1194,7 +1194,7 @@ You can read about game maps in *[tutorial article on DeusWiki](https://deuswiki
 ## Gratitude 
 
 - ***crtvxxx*** for your help with `math.`! In the imported function from ExplorerMod to circle spawn, I first encountered a MATH problem! The function may have been completely rewritten, but respect is eternal! This guy helped out with a whole feature!
-- ***rusya_27*** for feedback and bug detection!
+- ***Rusya_27*** for feedback and bug detection!
 - ***Gnome627*** for function `I3D:p()`!
 
 <a href="#top">Go up ↑</a>
