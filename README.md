@@ -749,7 +749,7 @@ end
 
 ## SAFETY PRECAUTIONS
 
--***RECOMMENDED*** to read the notes below before working ***[What are "coordinates"]***, ***[What is "rotation"]*** and ***[What is "direction"]*** in the understanding of the game and this the lua module. *Otherwise, the warranty for proper operation is void.*
+- ***RECOMMENDED*** to read the notes below before working ***[What are "coordinates"]***, ***[What is "rotation"]*** and ***[What is "direction"]*** in the understanding of the game and this the lua module. *Otherwise, the warranty for proper operation is void.*
 
 - ***FORBIDDEN*** to use this lua module in your mods without attribution. Otherwise, I'll set off a spell and conjure up a week's diarrhea. 
 *A joke 💋*
