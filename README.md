@@ -763,7 +763,7 @@ All the public functions of this module are collected here. Each function has a 
 > [!IMPORTANT]
 > The standard rotation is `Quaternion(0,0,0,1)` or *`Euler(0,0,0)` - **the object looks FORWARD on the Z axis to the north of the map**, any rotation is based from this direction. This should be kept in mind when writing scripts. (\**Euler(0,0,0)* is not a function, just a visual comparison.)
 > 
-> To configure the operation of `IsCameraLookAt`, you can and should edit the `IsCameraLookAt_Callback` function of the `USER EDITABLE FUNCTIONS` section inside the file. It is also worth familiarizing yourself with the 'IsCameraLookAt_VectorDrawer` trigger.
+> To configure the operation of `IsCameraLookAt`, you can and should edit the `IsCameraLookAt_Callback` function of the `USER EDITABLE FUNCTIONS` section inside the file. It is also worth familiarizing yourself with the `IsCameraLookAt_VectorDrawer` trigger.
 
 > [!TIP]
 > You can scroll the code below to the right and left! Hover the cursor over the canvas and use the mouse wheel to move it using `shift`!
