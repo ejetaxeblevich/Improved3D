@@ -662,6 +662,8 @@ A universal lua module that can be used to **expand the possibilities** for "spa
 
 You will be able to more **flexibly calculate coordinates and rotation, conveniently PLACE and ROTATE objects**, and use some technical features **through scripts** of any modification inside the game.
 
+> The task of the lua-module is to somehow simplify the work of community members in creating modifications if it is difficult for them to implement something on their own.
+
 ### FEATURES
 - **Full control of the `Quaternion` rotation** - now you don't have to guess what those numbers are! It is enough for you to imagine degrees on three axes `x` `y` `z`!
 - **Full control of the `CVector` coordinates** - easily move and place objects relative to each other!
