@@ -362,7 +362,7 @@ Class I3D
     [M] Object CallEntityInZone( CVector pos, float ZoneSize, bool GetsIntoCamera )
     /* Возвращает объект, что находится в желаемой точке.
 
-       posVector = CVector точки, позиция камеры если nil.
+       CVector pos         = CVector точки, позиция камеры если nil.
        float ZoneSize      = размер зоны у точки, в которой может быть объект (в метрах).
        bool GetsIntoCamera = захватывает только объекты, что могут быть спереди камеры, если true. */
 
@@ -370,6 +370,7 @@ Class I3D
     /* Возвращает все объекты на карте, что имеют позиции CVector, и их количество.
 
        bool GetsIntoCamera = захватывает только объекты в поле зрения камеры, если true. */
+
 
     /* Помощь в расчетах */
 
@@ -925,6 +926,7 @@ Class I3D
 
        GetsIntoCamera - if true, returns only entities currently inside
                         the camera view. */
+
 
     /* Calculation Helpers */
 
