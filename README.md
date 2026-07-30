@@ -53,9 +53,9 @@
 </div>
 
 > [!WARNING]
-> Этот ReadMe акутален только для `v1.3.1` версии Improved3D и выше!
+> Этот ReadMe акутален только для последней версии Improved3D!
 >
-> This ReadMe is relevant only for `v1.3.1` versions of Improved3D and above!
+> This ReadMe is relevant only for the latest version of Improved3D!
 
 ***
 
@@ -359,17 +359,35 @@ Class I3D
 
        Считает Y, если true. */
 
-    [M] Object CallEntityInZone( CVector pos, float ZoneSize, bool GetsIntoCamera )
-    /* Возвращает объект, что находится в желаемой точке.
+    [M] Objects CallEntityInZone( CVector pos, float ZoneSize, bool GetsIntoCamera )
+    /* Возвращает объект(ы), что находится в желаемой точке:
 
-       CVector pos         = CVector точки, позиция камеры если nil.
-       float ZoneSize      = размер зоны у точки, в которой может быть объект (в метрах).
-       bool GetsIntoCamera = захватывает только объекты, что могут быть спереди камеры, если true. */
+       CVector pos         = CVector точки, позиция камеры если nil;
+       float ZoneSize      = размер зоны у точки, в которой может быть объект (в метрах);
+       bool GetsIntoCamera = захватывает только объекты, что могут быть спереди камеры если true;
+
+       Получит объекты карты снова, если GetAllEntitiesAgain = true;
+
+       Передайте AnythingInZone = true, чтобы функция вернула все найденные объекты
+            или функцию Condition для настройки фильтра
+            например [I3D.IsVehicleWithBelong] и аргумент для нее FunctionConditionArgument, например [1004].
+
+       Примеры:
+            local objects = I3D:CallEntityInZone(GetCameraPos(), 5, true, false, I3D.IsVehicleWithBelong, 1004)
+            local obj = I3D:CallEntityInZone(CVector(627, 228, -627), 10, true, true) */
 
     [M] table GetAllEntities( bool GetsIntoCamera )
     /* Возвращает все объекты на карте, что имеют позиции CVector, и их количество.
 
        bool GetsIntoCamera = захватывает только объекты в поле зрения камеры, если true. */
+
+
+    /* Функции-фильтры для [I3D:CallEntityInZone()]. Вы можете аналогично добавить свои */
+
+    [M] bool IsVehicle( object )
+    [M] bool IsVehicleWithName( object, string Name )
+    [M] bool IsVehicleWithBelong( object, int Belong )
+    [M] bool IsVehicleWithPrototype( object, string Prototype )
 
 
     /* Помощь в расчетах */
@@ -482,10 +500,12 @@ Class I3D
        Для камер катсцен это работает правильно,
        но для обычных объектов приводит к неправильному вращению. */
 
-    [M] CVector GetCameraPosLinked( object Object )
+    [M] CVector GetCameraPosLinked( object Object, bool LOG )
     /* Возвращает позицию камеры относительно объекта или машины.
 
-       Используется для FlyLinked. */
+       Используется для FlyLinked.
+
+       Принтит в лог результат, если bool LOG = true. */
 
     [M] CVector GetCVectorDifference( CVector origin, CVector linkedPosition )
     /* Возвращает разницу между двумя позициями CVector. */
@@ -648,6 +668,7 @@ Class I3D
 - ***crtvxxx*** за помощь с `math.`! В импортированной функции из ExplorerMod на спавн по окружности я впервые столкнулся с проблемой МАТЕМАТИКИ! Пусть функция и была переписана полностью, но уважение вечно! Этот парень выручил целую фичу!
 - ***Rusya_27*** за обратную связь и выявление багов!
 - ***Gnome627*** за функцию `I3D:p()`!
+- ***Varisane*** за обратную связь!
 
 <a href="#top">Наверх ↑</a>
 
@@ -912,20 +933,35 @@ Class I3D
        If Y is true, the Y coordinate is included in the calculation.
        Otherwise, averaging is performed only on the horizontal plane. */
 
-    [M] Object CallEntityInZone( CVector pos, float ZoneSize, bool GetsIntoCamera )
-    /* Returns the entity located within the specified area.
+    [M] Objects CallEntityInZone( CVector pos, float ZoneSize, bool GetsIntoCamera )
+    /* Returns the object(s) that is located at the desired point:
 
-       pos            - center of the search area. Uses the camera position if nil.
-       ZoneSize       - search radius in meters.
-       GetsIntoCamera - if true, only entities that are potentially visible
-                        to the camera are considered. */
+       CVector pos         = CVector of the point, camera position if nil;
+       float ZoneSize      = the size of the zone at the point where the object can be located (in meters);
+       bool GetsIntoCamera = captures only objects that can be in front of the camera if true;
+
+       Will get the map objects again if GetAllEntitiesAgain = true;
+
+       Pass AnythingInZone = true so that the function returns all found objects.
+            or the Condition function for configuring the filter
+            for example [I3D.IsVehicleWithBelong] and the argument for it is FunctionConditionArgument, for example [1004].
+
+       Examples:
+            local objects = I3D:CallEntityInZone(GetCameraPos(), 5, true, false, I3D.IsVehicleWithBelong, 1004)
+            local obj = I3D:CallEntityInZone(CVector(627, 228, -627), 10, true, true) */
 
     [M] table GetAllEntities( bool GetsIntoCamera )
-    /* Returns a table containing all entities on the map that have valid
-       CVector positions, along with their total count.
+    /* Returns all the objects on the map that have CVector positions and their number.
 
-       GetsIntoCamera - if true, returns only entities currently inside
-                        the camera view. */
+       bool GetsIntoCamera = captures only objects in the camera's field of view, if true. */
+
+
+    /* Filter-functions for [I3D:CallEntityInZone()]. You can similarly add your own */
+
+    [M] bool IsVehicle( object )
+    [M] bool IsVehicleWithName( object, string Name )
+    [M] bool IsVehicleWithBelong( object, int Belong )
+    [M] bool IsVehicleWithPrototype( object, string Prototype )
 
 
     /* Calculation Helpers */
@@ -1030,10 +1066,13 @@ Class I3D
        While this behavior works correctly for cutscene cameras,
        it produces incorrect rotations when applied to ordinary objects. */
 
-    [M] CVector GetCameraPosLinked( object Object )
+    [M] CVector GetCameraPosLinked( object Object, bool LOG )
     /* Returns the camera position relative to the specified object or vehicle.
 
-       Useful for FlyLinked and similar camera systems. */
+       Useful for FlyLinked and similar camera systems.
+
+       LOG - if true, prints the resulting Euler angles
+             to the game log. */
 
     [M] CVector GetCVectorDifference( CVector origin, CVector linkedPosition )
     /* Returns the difference vector between two CVector positions. */
@@ -1204,5 +1243,6 @@ You can read about game maps in *[tutorial article on DeusWiki](https://deuswiki
 - ***crtvxxx*** for your help with `math.`! In the imported function from ExplorerMod to circle spawn, I first encountered a MATH problem! The function may have been completely rewritten, but respect is eternal! This guy helped out with a whole feature!
 - ***Rusya_27*** for feedback and bug detection!
 - ***Gnome627*** for function `I3D:p()`!
+- ***Varisane*** for feedback!
 
 <a href="#top">Go up ↑</a>
