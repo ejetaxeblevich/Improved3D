@@ -7,7 +7,7 @@
 --               написанный специально для игры
 --             Ex Machina / Hard Truck Apocalypse
 --
---                     Improved3D v1.4
+--                     Improved3D v1.5
 -- 
 -- 
 -- ====================== Автор E Jet =========================
@@ -170,8 +170,14 @@
 --       [M] Quaternion QuaternionFromAxes( CVector right, CVector up, CVector forward )  /* Возвращает кватернион из направлений по осям */
 --       [M] CVector GetForwardFromQuaternion( Quaternion )      /* Возвращает направление "вперед" из вращения */
 --       [M] CVector CVectorAverage( table Positions, bool Y )   /* Возвращает точку как среднее арифметическое векторов, считает Y если true */
---       [M] Object CallEntityInZone( CVector pos, float ZoneSize, bool GetsIntoCamera )     /* Возвращает объект, что находится в желаемой точке: posVector = CVector точки, позиция камеры если nil; float ZoneSize = размер зоны у точки, в которой может быть объект (в метрах); bool GetsIntoCamera = захватывает только объекты, что могут быть спереди камеры если true */
+--       [M] Objects CallEntityInZone( CVector pos, float ZoneSize, bool GetsIntoCamera, bool GetAllEntitiesAgain, bool AnythingInZone or function Condition, any FunctionConditionArgument )     /* Возвращает объект(ы), что находится в желаемой точке: posVector = CVector точки, позиция камеры если nil; float ZoneSize = размер зоны у точки, в которой может быть объект (в метрах); bool GetsIntoCamera = захватывает только объекты, что могут быть спереди камеры если true; Получит объекты карты снова, если GetAllEntitiesAgain = true; Передайте AnythingInZone = true, чтобы функция вернула все найденные объекты или функцию Condition для настройки фильтра - например [I3D.IsVehicleWithBelong] и аргумент для нее FunctionConditionArgument, например [1004]. Примеры: [local objects = I3D:CallEntityInZone(GetCameraPos(), 5, true, false, I3D.IsVehicleWithBelong, 1004)]; [local obj = I3D:CallEntityInZone(GetCameraPos(), 10, true, true)] */
 --       [M] table GetAllEntities( bool GetsIntoCamera )         /* Возвращает все объекты на карте, что имеют позиции CVector и их количество: bool GetsIntoCamera = захватывает только объекты в поле зрения камеры, если true */
+--
+--       /* Функции-фильтры для [I3D:CallEntityInZone()]. Вы можете аналогично добавить свои */
+--       [M] bool IsVehicle( object )
+--       [M] bool IsVehicleWithName( object, string Name )
+--       [M] bool IsVehicleWithBelong( object, int Belong )
+--       [M] bool IsVehicleWithPrototype( object, string Prototype )
 --
 --       /* Помощь в расчетах */
 --       [M] void p()     /* Аналог таргемовского p(). Принтит в лог игры Point для пути движения камеры camera_paths.xml без запятых */
@@ -185,7 +191,7 @@
 --       [M] void MoveObjectsByPaths( table Objects, table PathNames, float MoveTime, string MoverName )   /* Выбранные объекты начинают движение по каждому своему пути, обертка [MoveObject()] под несколько объектов. Количество элементов в списках должно быть одинаковым */
 --       [M] CVector GetCameraPos()      /* Обертка стандартного [GetCameraPos()] под координаты */
 --       [M] Quaternion GetCameraRot()   /* Возвращает исправленное вращение камеры от [GetCameraPos()]. Оригинальное вращение зеркально от полюсов, которое нормально работает для камеры в катсценах, но не для объектов */
---       [M] CVector GetCameraPosLinked( object Object )   /* Возвращает точку камеры относительно объекта/машины, полезно для FlyLinked */
+--       [M] CVector GetCameraPosLinked( object Object, bool LOG )   /* Возвращает точку камеры относительно объекта/машины, полезно для FlyLinked. Принтит в лог результат, если bool LOG = true. */
 --       [M] CVector GetCVectorDifference( CVector origin, CVector linkedPosition )  /* Возвращает разницу между двумя CVector */
 --       [M] CVector ParseCVector( string CVector )        /* Возвращает CVector из строки с CVector (юзердату) */
 --       [M] Quaternion ParseQuaternion( string Quaternion )      /* Возвращает Quaternion из строки с Quaternion (юзердату) */
@@ -241,7 +247,7 @@
 --      Эту и другую информацию вы сможете найти на github  
 -- проекта или найти примеры работы модуля в моде ExplorerMod 
 -- от того же автора.
---      Ссылка на github: https://github.com/ejetaxeblevich
+--      Ссылка на github: https://github.com/ejetaxeblevich/Improved3D
 --
 ---------------------------------------------------------------
 --
@@ -255,9 +261,11 @@
 -- функция и была переписана полностью, но уважение вечно! Этот
 -- парень выручил целую фичу!
 --
--- E Jet: Благодарность rusya_27 за обратную связь!
+-- E Jet: Благодарность Rusya_27 за обратную связь и выявление багов!
 --
 -- E Jet: Благодарность Gnome627 за функцию I3D:p()!
+--
+-- E Jet: Благодарность Varisane за обратную связь!
 --
 -- ============================================================
 -- ============================================================
@@ -269,7 +277,7 @@
 
 local I3D = {}
 I3D.__index = I3D
-I3D.version = "v1.4"
+I3D.version = "v1.5"
 
 local str_find = string.find
 local str_gsub = string.gsub
@@ -286,6 +294,7 @@ local m_asin = math.asin
 local m_sqrt = math.sqrt
 local m_abs = math.abs
 local m_atan = math.atan
+local m_atan2 = math.atan2
 local m_tan = math.tan
 local m_pi = math.pi
 
@@ -403,6 +412,34 @@ local function collect_names(stringNamePrefix, stringCollectPostfix, stringPath)
 end
 
 
+--pcall shorts
+local function GetClassName(entity)
+    return entity:GetClassName()
+end
+local function GetSize(entity)
+    return entity:GetSize()
+end
+local function GetScale(entity)
+    return entity:GetScale()
+end
+local function GetPosition(entity)
+    return entity:GetPosition()
+end
+local function SetPosition(entity, pos)
+    return entity:SetPosition(pos)
+end
+local function SetRotation(entity, rot)
+    return entity:SetRotation(rot)
+end
+local function SetGamePositionOnGround(entity, pos)
+    return entity:SetGamePositionOnGround(pos)
+end
+local function SetGodMode(entity, int)
+    return entity:SetGodMode(int)
+end
+
+
+
 -- ///////////////////////////////////////////////////////////////////////////////
 
 -- //////////////////////// GLOBAL MODULE FUNCTIONS //////////////////////////////
@@ -447,7 +484,7 @@ function I3D:IsUserdata(userdata)
         if self:IsQuaternion(userdata) then
             return "quaternion"
         end
-        local s, class = pcall(function() return userdata:GetClassName() end)
+        local s, class = pcall(GetClassName, userdata)
         if s and class then
             return class
         end
@@ -478,14 +515,14 @@ function I3D:SetObjectLookAt(objSetAim, objGetAim, boolOnlyYaw, boolLockRoll)
 		return nil
 	end
 
-    local s, entity_pos = pcall(function() return objSetAim:GetPosition() end)
+    local s, entity_pos = pcall(GetPosition, objSetAim)
 	local sourcePos = s and entity_pos or CVector(0,0,0)
 	local targetPos
 
 	if type(objGetAim)=="userdata" then
 		targetPos = objGetAim
 	elseif type(objGetAim)=="table" then
-        local s, entity_pos = pcall(function() return objGetAim:GetPosition() end)
+        local s, entity_pos = pcall(GetPosition, objGetAim)
 		targetPos = s and entity_pos or CVector(0,0,0)
 	else
         LOG("[E] Module Improved3D.lua === SetObjectLookAt(): Error objGetAim")
@@ -506,7 +543,7 @@ function I3D:SetObjectLookAt(objSetAim, objGetAim, boolOnlyYaw, boolLockRoll)
         lookRotation = self:CVectorEulerToQuaternion(y, 0, 0)
     end
 
-	pcall(function() objSetAim:SetRotation(lookRotation) end)
+    pcall(SetRotation, objSetAim, lookRotation)
 
 	return lookRotation
 end
@@ -628,8 +665,8 @@ function I3D:SetObjectsAroundCircle(ListOfObjects, CenterPos, BaseRotation, Radi
         --авто радиус
         if boolAutoRadius or i==1 then
             objRadius = Radius
-            local s1, size_veh = pcall(function() return object:GetSize() end)
-            local s2, size_sg = pcall(function() return object:GetScale() end)
+            local s1, size_veh = pcall(GetSize, object)
+            local s2, size_sg = pcall(GetScale, object)
             objRadius = objRadius + ((s1 and size_veh.z) or (s2 and size_sg) or 0) * 0.75
         end
 
@@ -666,17 +703,17 @@ function I3D:SetObjectsAroundCircle(ListOfObjects, CenterPos, BaseRotation, Radi
         local finalRot = self:QuaternionFromAxes(right, realUp, forward)
 
         --назначение
-        pcall(function() object:setGodMode(1) end)
+        pcall(SetGodMode, object, 1)
         object:SetRotation(finalRot)
         if boolPosAbsolute then
-            pcall(function() object:SetPosition(pos) end)
+            pcall(SetPosition, object, pos)
         else
-            local veh = pcall(function() object:SetGamePositionOnGround(pos) end)
+            local veh = pcall(SetGamePositionOnGround, object, pos)
             if not veh then
-                pcall(function() object:SetPosition(CVector(pos.x, g_ObjCont:GetHeight(pos.x, pos.z), pos.z)) end)
+                pcall(SetPosition, object, CVector(pos.x, g_ObjCont:GetHeight(pos.x, pos.z), pos.z))
             end
         end
-        pcall(function() object:setGodMode(0) end)
+        pcall(SetGodMode, object, 0)
 
         t_insert(Positions, pos)
     end
@@ -751,13 +788,13 @@ function I3D:ItemsToCVectors(tableItems)
         elseif type(v)=="string" then
             local o = getObj(v)
             if o then
-                local s, v = pcall(function() return o:GetPosition() end)
+                local s, v = pcall(GetPosition, o)
                 vectors[i] = s and v or CVector(0,0,0)
             else
                 vectors[i] = self:ParseCVector(v)
             end
         elseif type(v)=="table" then
-            local s, v = pcall(function() return v:GetPosition() end)
+            local s, v = pcall(GetPosition, v)
             vectors[i] = s and v or CVector(0,0,0)
         end
     end
@@ -999,7 +1036,7 @@ function I3D:GetCVectorDifference(origin, linkedPosition)
     )
 end
 
-function I3D:GetCameraPosLinked(linkedObject)
+function I3D:GetCameraPosLinked(linkedObject, boolLOG)
     if not linkedObject then
         return
     end
@@ -1008,6 +1045,12 @@ function I3D:GetCameraPosLinked(linkedObject)
     local origin = linkedObject:GetPosition()
 
     local linkedPos = self:GetCVectorDifference(origin, self:GetCameraPos())
+
+    if boolLOG then
+        local posStr = str_format("%.3f %.3f %.3f", linkedPos.x, linkedPos.y, linkedPos.z)
+
+        LOG('[I] Module Improved3D.lua === GetCameraPosLinked(): <Point coord="'..posStr..'" />')
+    end
 
     return linkedPos
 end
@@ -1173,7 +1216,7 @@ function I3D:IsObjectInCameraView(objEntity, floatScopeCoeff, boolSquareScope)
 
 	local floatScopeCoeff = floatScopeCoeff or 1
 
-    local s, entity_pos = pcall(function() return objEntity:GetPosition() end)
+    local s, entity_pos = pcall(GetPosition, objEntity)
 	entity_pos = s and entity_pos or CVector(0,0,0)
 
 	if boolSquareScope and not type(floatScopeCoeff)=="table" then
@@ -1193,7 +1236,7 @@ function I3D:IsObjectInsideLocation(stringLocationName, objectObject, floatMinLe
 	local Object = objectObject --or GetPlayerVehicle()
     local Loc = getObj(stringLocationName)
 	if Object and Loc then
-        local s, entity_pos = pcall(function() return Object:GetPosition() end)
+        local s, entity_pos = pcall(GetPosition, Object)
 		local len = s and (entity_pos - Loc:GetPosition()):length() or 0
 		local minlen = Loc:GetProperty("Radius").AsFloat
 		if (len) > (minlen + (floatMinLength or 5)) then
@@ -1395,48 +1438,106 @@ function I3D:ParseQuaternion(Quaternion)
 	return userdata
 end
 
-function I3D:CallEntityInZone(posVector, floatZoneSize, boolGetsIntoCamera)
-	local Entity
+
+--I3D:CallEntityInZone
+--  boolAnythingInZoneORfunctionCondition
+--  anyFunctionConditionArgument
+--local obj = I3D:CallEntityInZone(GetCameraPos(), 5, true, true, I3D.IsVehicleWithBelong, 1004)
+function I3D:IsVehicle(entity)
+    if not entity then
+        return nil
+    end
+    local class = entity:GetClassName()
+    if class=="Vehicle" then
+        return true
+    end
+end
+function I3D:IsVehicleWithBelong(entity, intBelong)
+    if self:IsVehicle(entity) then
+        return entity:GetBelong() == (intBelong or 0)
+    end
+end
+function I3D:IsVehicleWithName(entity, stringName)
+    if self:IsVehicle(entity) then
+        return entity:GetName() == (stringName or "")
+    end
+end
+function I3D:IsVehicleWithPrototype(entity, stringPrototype)
+    if self:IsVehicle(entity) then
+        return entity:GetProperty("Prototype").AsString == (stringPrototype or "")
+    end
+end
+
+
+function I3D:CallEntityInZone(posVector, floatZoneSize, boolGetsIntoCamera, boolGetAllEntitiesAgain, boolAnythingInZoneORfunctionCondition, anyFunctionConditionArgument)
+	local Entities = {}
 	local posVector = posVector or self:GetCameraPos()
 	local floatZoneSize = floatZoneSize or 10
-	self.ENTITIES_ON_MAP = self.ENTITIES_ON_MAP or self:GetAllEntities(boolGetsIntoCamera)
-	self.ENTITIES_ON_MAP_SIZE = self.ENTITIES_ON_MAP_SIZE or t_getn(self.ENTITIES_ON_MAP)
-	local v, z = posVector, floatZoneSize
-	local e = nil
+
+	if boolGetAllEntitiesAgain or not self.ENTITIES_ON_MAP then
+        self.ENTITIES_ON_MAP = self:GetAllEntities(boolGetsIntoCamera)
+        self.ENTITIES_ON_MAP_SIZE = t_getn(self.ENTITIES_ON_MAP)
+    end
+
+    local cx = posVector.x
+    local cy = posVector.y
+    local cz = posVector.z
+	local z = floatZoneSize
+    local radius = z * z
+
+    local argum = anyFunctionConditionArgument
+    local mode = boolAnythingInZoneORfunctionCondition
+    local cond
+    if type(mode) == "function" then
+        cond = mode
+        mode = true
+    end
+
 	for i, entity in ipairs(self.ENTITIES_ON_MAP) do
-		local s, e = pcall(function() return entity:GetPosition() end)
-		if s and ((v.x+z>=e.x) and (e.x>=v.x-z)) and ((v.y+z>=e.y) and (e.y>=v.y-z)) and ((v.z+z>=e.z) and (e.z>=v.z-z)) then
-			Entity = entity
-			break
-		end
+		local s, e = pcall(GetPosition, entity)
+        if s and e then
+            local dx = e.x - cx
+            local dy = e.y - cy
+            local dz = e.z - cz
+            if radius >= dx*dx + dy*dy + dz*dz then
+                if not cond or cond(self, entity, argum) then
+                    t_insert(Entities, entity)
+                    if not mode then
+                        break
+                    end
+                end
+            end
+        end
 	end
 
-	return Entity
+	return (mode and (Entities[1] and Entities)) or Entities[1]
 end
 
 function I3D:GetAllEntities(boolGetsIntoCamera)
-	self.ENTITIES_ON_MAP_SIZE = 0
+    if not g_ObjCont then
+        return nil
+    end
+
 	self.ENTITIES_ON_MAP = {}
-	if g_ObjCont then
-		local size = g_ObjCont:size()
-		self.ENTITIES_ON_MAP_SIZE = size
-		for i=1, size do
-			local entity = GetEntityByID(i)
-			if entity then
-				local s, entity_pos = pcall(function() return entity:GetPosition() end)
-				if s and entity_pos and type(entity_pos)=="userdata" then
-					if boolGetsIntoCamera then
-						if self:IsInCameraView(entity_pos) then
-							t_insert(self.ENTITIES_ON_MAP, entity)
-						end
-					else
-						t_insert(self.ENTITIES_ON_MAP, entity)
-					end
-				end
-			end
-		end
-	end
-	return self.ENTITIES_ON_MAP, self.ENTITIES_ON_MAP_SIZE
+    local Entities = self.ENTITIES_ON_MAP
+
+    local GetEntity = GetEntityByID
+    local IsInCameraView = self.IsInCameraView
+
+    for i = 1, g_ObjCont:size() do
+        local entity = GetEntity(i)
+        if entity then
+            local s, e = pcall(GetPosition, entity)
+            if s and e and type(e)=="userdata" and (not boolGetsIntoCamera or IsInCameraView(self, e)) then
+                t_insert(Entities, entity)
+            end
+        end
+    end
+
+    local Size = t_getn(Entities)
+    self.ENTITIES_ON_MAP_SIZE = Size
+
+    return Entities, Size
 end
 
 
