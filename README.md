@@ -669,7 +669,7 @@ Class I3D
 ```lua
 <trigger Name="a" active="0">
     <event timeout="1" eventid="GE_TIME_PERIOD" />
-		<script>
+	<script>
         --Включив полет камеры, выставляю точку в пространстве, где хочу заспавнить машину/объект.
         --Ее я записываю в глобальную переменную:
         GL_gde = GetCameraPos()
@@ -1294,7 +1294,7 @@ I'll just show you the triggers that I used for this demo, but I'll add comments
 ```lua
 <trigger Name="a" active="0">
     <event timeout="1" eventid="GE_TIME_PERIOD" />
-		<script>
+	<script>
         --Turning on the camera's flight, I set a point in space where I want to hover the car/object.
         --I write it to a global variable:
         GL_gde = GetCameraPos()
