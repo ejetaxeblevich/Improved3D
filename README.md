@@ -697,7 +697,7 @@ Class I3D
 		--Чтобы объект мог двигаться в стороны, а не быть в одной точке,
 		--Можно применять к нему только определенные координаты, например Y:
 		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
-		--getObj("aimteam_vehicle_0"):SetPosition(gde.x, GL_gde.y, gde.z)
+		--getObj("aimteam_vehicle_0"):SetPosition(CVector(gde.x, GL_gde.y, gde.z))
 		
 		--А чтобы он мог летать с фиксированной высотой над ландшафтом:
 		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
@@ -1335,7 +1335,7 @@ I'll just show you the triggers that I used for this demo, but I'll add comments
 		--So that the object can move sideways instead of being at the same point,
 		--You can apply only certain coordinates to it, for example Y:
 		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
-		--getObj("aimteam_vehicle_0"):SetPosition(gde.x, GL_gde.y, gde.z)
+		--getObj("aimteam_vehicle_0"):SetPosition(CVector(gde.x, GL_gde.y, gde.z))
 
 		--And so that it can fly with a fixed height above the landscape:
 		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
