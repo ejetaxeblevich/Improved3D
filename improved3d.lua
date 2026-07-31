@@ -7,7 +7,7 @@
 --               написанный специально для игры
 --             Ex Machina / Hard Truck Apocalypse
 --
---                     Improved3D v1.5
+--                     Improved3D v1.6
 -- 
 -- 
 -- ====================== Автор E Jet =========================
@@ -172,6 +172,7 @@
 --       [M] CVector CVectorAverage( table Positions, bool Y )   /* Возвращает точку как среднее арифметическое векторов, считает Y если true */
 --       [M] Objects CallEntityInZone( CVector pos, float ZoneSize, bool GetsIntoCamera, bool GetAllEntitiesAgain, bool AnythingInZone or function Condition, any FunctionConditionArgument )     /* Возвращает объект(ы), что находится в желаемой точке: posVector = CVector точки, позиция камеры если nil; float ZoneSize = размер зоны у точки, в которой может быть объект (в метрах); bool GetsIntoCamera = захватывает только объекты, что могут быть спереди камеры если true; Получит объекты карты снова, если GetAllEntitiesAgain = true; Передайте AnythingInZone = true, чтобы функция вернула все найденные объекты или функцию Condition для настройки фильтра - например [I3D.IsVehicleWithBelong] и аргумент для нее FunctionConditionArgument, например [1004]. Примеры: [local objects = I3D:CallEntityInZone(GetCameraPos(), 5, true, false, I3D.IsVehicleWithBelong, 1004)]; [local obj = I3D:CallEntityInZone(GetCameraPos(), 10, true, true)] */
 --       [M] table GetAllEntities( bool GetsIntoCamera )         /* Возвращает все объекты на карте, что имеют позиции CVector и их количество: bool GetsIntoCamera = захватывает только объекты в поле зрения камеры, если true */
+--       [M] void ClearAllCachedEntities()      /* Очищает все закэшированные объекты, которые получили [CallEntityInZone] и [GetAllEntities] для лечения возможных проблем при их переборе в циклах */
 --
 --       /* Функции-фильтры для [I3D:CallEntityInZone()]. Вы можете аналогично добавить свои */
 --       [M] bool IsVehicle( object )
@@ -277,7 +278,7 @@
 
 local I3D = {}
 I3D.__index = I3D
-I3D.version = "v1.5"
+I3D.version = "v1.6"
 
 local str_find = string.find
 local str_gsub = string.gsub
@@ -411,6 +412,21 @@ local function collect_names(stringNamePrefix, stringCollectPostfix, stringPath)
     return items
 end
 
+--LuaExtended
+local function table_clear(t)
+    local n = t_getn(t)
+    for i = 1, n do
+        t[i] = nil
+    end
+    return t
+end
+local function table_clear2(t)
+    for k in pairs(t) do
+        t[k] = nil
+    end
+    return t
+end
+
 
 --pcall shorts
 local function GetClassName(entity)
@@ -459,21 +475,11 @@ end
 
 
 function I3D:IsCVector(userdata)
-    if type(userdata)=="userdata" then
-        if get_commas(userdata)==2 then
-            return true
-        end
-    end
-    return false
+    return type(userdata)=="userdata" and get_commas(userdata)==2
 end
 
 function I3D:IsQuaternion(userdata)
-    if type(userdata)=="userdata" then
-        if get_commas(userdata)==3 then
-            return true
-        end
-    end
-    return false
+    return type(userdata)=="userdata" and get_commas(userdata)==3
 end
 
 function I3D:IsUserdata(userdata)
@@ -501,8 +507,8 @@ function I3D:UpdateScreenInfo()
     self.WINDOW_W = window_w
     self.WINDOW_H = window_h
     local info = {
-        fov = fov_deg, 
-        width = window_w, 
+        fov    = fov_deg, 
+        width  = window_w, 
         height = window_h
     }
     return info
@@ -723,7 +729,7 @@ end
 
 function I3D:MoveObject(obj, stringPathName, floatMoveTime, stringMoverName)
     if not obj then
-        return
+        return nil
     end
     local moverId = CreateNewObject { 
         prototypeName = "cinematicMover", 
@@ -753,7 +759,7 @@ end
 
 function I3D:CVectorAverage(listVectors, boolY)
 	local AverageCVector = CVector(0,0,0)
-	local MyCVectors = listCVectorPozs or {CVector(1,0,0), CVector(0,1,0), CVector(0,0,1)}
+	local MyCVectors = listVectors or {CVector(1,0,0), CVector(0,1,0), CVector(0,0,1)}
 	local Skoka = t_getn(MyCVectors)
 
 	local n = 1
@@ -770,7 +776,7 @@ function I3D:CVectorAverage(listVectors, boolY)
 	if SummaZ>0 and SummaY>0 and SummaX>0 then
 		AverageCVector.x = SummaX / Skoka
 		AverageCVector.z = SummaZ / Skoka
-		if boolY==true then
+		if boolY then
 			AverageCVector.y = SummaY / Skoka
 		else
 			AverageCVector.y = g_ObjCont:GetHeight(AverageCVector.x, AverageCVector.z)
@@ -1038,7 +1044,7 @@ end
 
 function I3D:GetCameraPosLinked(linkedObject, boolLOG)
     if not linkedObject then
-        return
+        return nil
     end
 
     --линкуемый объект/машина для катсцены с FlyLinked
@@ -1138,9 +1144,15 @@ function I3D:IsInCameraView(pos, region)
 
     --воздать если нету
     local pos = pos or CVector(0,0,0)
-    local fov_deg = self.FOV or self:UpdateScreenInfo().fov
-	local window_w = self.WINDOW_W or self:UpdateScreenInfo().width
-	local window_h = self.WINDOW_H or self:UpdateScreenInfo().height
+    local fov_deg  = self.FOV
+    local window_w = self.WINDOW_W
+    local window_h = self.WINDOW_H
+    if not self.FOV or not self.WINDOW_W or not self.WINDOW_H then
+        local info = self:UpdateScreenInfo()
+        fov_deg  = info.fov
+        window_w = info.width
+        window_h = info.height
+    end
 
     --оси камеры из quaternion
     local right, up, forward = self:QuaternionToAxes(camera_quat)
@@ -1193,16 +1205,22 @@ function I3D:IsInCameraViewSquared(pos, floatScopeCoeff)
 	local floatScopeCoeff = floatScopeCoeff or 1
 
 	local pos = pos or CVector(0,0,0)
-    local fov_deg = self.FOV or self:UpdateScreenInfo().fov
-	local window_w = self.WINDOW_W or self:UpdateScreenInfo().width
-	local window_h = self.WINDOW_H or self:UpdateScreenInfo().height
+    local fov_deg  = self.FOV
+    local window_w = self.WINDOW_W
+    local window_h = self.WINDOW_H
+    if not self.FOV or not self.WINDOW_W or not self.WINDOW_H then
+        local info = self:UpdateScreenInfo()
+        fov_deg  = info.fov
+        window_w = info.width
+        window_h = info.height
+    end
 
 	local aspect = window_w / window_h
 
 	local region = { 
-		left = -floatScopeCoeff / aspect, 
-		right = floatScopeCoeff / aspect, 
-		top = floatScopeCoeff, 
+		left   = -floatScopeCoeff / aspect, 
+		right  =  floatScopeCoeff / aspect, 
+		top    =  floatScopeCoeff, 
 		bottom = -floatScopeCoeff
 	}
 
@@ -1219,69 +1237,63 @@ function I3D:IsObjectInCameraView(objEntity, floatScopeCoeff, boolSquareScope)
     local s, entity_pos = pcall(GetPosition, objEntity)
 	entity_pos = s and entity_pos or CVector(0,0,0)
 
-	if boolSquareScope and not type(floatScopeCoeff)=="table" then
+    local scope = type(floatScopeCoeff)=="table" and floatScopeCoeff
+	if boolSquareScope and not scope then
 		return self:IsInCameraViewSquared(entity_pos, floatScopeCoeff)
 	else
 		local region = {
-			left = type(floatScopeCoeff)=="table" and floatScopeCoeff.left or floatScopeCoeff, 
-			right = type(floatScopeCoeff)=="table" and floatScopeCoeff.right or floatScopeCoeff, 
-			top = type(floatScopeCoeff)=="table" and floatScopeCoeff.top or floatScopeCoeff, 
-			bottom = type(floatScopeCoeff)=="table" and floatScopeCoeff.bottom or floatScopeCoeff
+			left   = scope and scope.left   or floatScopeCoeff, 
+			right  = scope and scope.right  or floatScopeCoeff, 
+			top    = scope and scope.top    or floatScopeCoeff, 
+			bottom = scope and scope.bottom or floatScopeCoeff
 		}
 		return self:IsInCameraView(entity_pos, region)
 	end
 end
 
 function I3D:IsObjectInsideLocation(stringLocationName, objectObject, floatMinLength)
-	local Object = objectObject --or GetPlayerVehicle()
-    local Loc = getObj(stringLocationName)
-	if Object and Loc then
-        local s, entity_pos = pcall(GetPosition, Object)
-		local len = s and (entity_pos - Loc:GetPosition()):length() or 0
-		local minlen = Loc:GetProperty("Radius").AsFloat
-		if (len) > (minlen + (floatMinLength or 5)) then
-			return false
-        else
-            return true
-		end
-	end
+	local Loc = getObj(stringLocationName)
+    if not objectObject or not Loc then
+        return nil
+    end
+
+    local s, entity_pos = pcall(GetPosition, objectObject)
+    if not s or not entity_pos then
+        return nil
+    end
+
+    floatMinLength = floatMinLength or 5
+
+    local loc_pos = Loc:GetPosition()
+    local radius = Loc:GetProperty("Radius").AsFloat
+
+    return radius + floatMinLength >= (entity_pos - loc_pos):length()
 end
 
 function I3D:GetMapSize()
-	local mapsize = GET_GLOBAL_OBJECT( "CurrentLevel" ):GetLandSize()
-	if mapsize==64 then
-		mapsize = 8000
-	elseif mapsize==32 then
-		mapsize = 4000
-	elseif mapsize==16 then
-		mapsize = 2000
-	elseif mapsize==8 then
-		mapsize = 1000
-	elseif mapsize==4 then
-		mapsize = 500
-	elseif mapsize==2 then
-		mapsize = 250
-	end
-	return mapsize
+	return GET_GLOBAL_OBJECT("CurrentLevel"):GetLandSize() * 125
 end
 
 function I3D:DrawVector(origin, quaternion, distance)
 	local obstacle = false
 	local pos = self:GetEndOfBeam(origin, quaternion, distance)
+
 	if g_ObjCont:GetHeight(pos.x, pos.z) >= pos.y then
 		--println("vector undergrounded!")
 		obstacle = true
 	end
+
 	local mapsize = self:GetMapSize()
 	if (pos.x>=mapsize or pos.y>=mapsize or pos.z>=mapsize) or (0>=pos.x or 0>=pos.y or 0>=pos.z) then
 		--println("vector dropped out of the world!")
 		obstacle = true
 	end
+
 	return pos, obstacle
 end
 
 function I3D:CVectorEulerToQuaternion(pitch, yaw, roll, bLOG)
-	if bLOG==true then
+	if bLOG then
         LOG("[I] Module Improved3D.lua === CVectorEulerToQuaternion(): Input x: "..tostring(yaw)..", y: "..tostring(pitch)..", z: "..tostring(roll))
 	end
 	local radPitch = m_rad(pitch)
@@ -1300,17 +1312,19 @@ function I3D:CVectorEulerToQuaternion(pitch, yaw, roll, bLOG)
 	local qy = cr * sp * cy + sr * cp * sy
 	local qz = cr * cp * sy - sr * sp * cy
 
-	if bLOG==true then
-        LOG("[I] Module Improved3D.lua === CVectorEulerToQuaternion(): Got Quaternion"..tostring(Quaternion(qx, qy, qz, qw)))
+    local Quat = Quaternion(qx, qy, qz, qw)
+
+	if bLOG then
+        LOG("[I] Module Improved3D.lua === CVectorEulerToQuaternion(): Got Quaternion"..tostring(Quat))
 	end
 
-	return Quaternion(qx, qy, qz, qw)
+	return Quat
 end
 
 function I3D:CVectorQuaternionToEuler(quaternion, bLOG)
     local x, y, z, w = quaternion.x, quaternion.y, quaternion.z, quaternion.w
 
-	if bLOG==true then
+	if bLOG then
 		LOG("[I] Module Improved3D.lua === CVectorQuaternionToEuler(): Input Quaternion"..tostring(Quaternion(x, y, z, w)))
 	end
 
@@ -1330,15 +1344,17 @@ function I3D:CVectorQuaternionToEuler(quaternion, bLOG)
     local cosr_cosp = 1 - 2 * (y * y + z * z)
     local roll = m_atan2(sinr_cosp, cosr_cosp)
 
-	if bLOG==true then
-		LOG("[I] Module Improved3D.lua === CVectorQuaternionToEuler(): Got x: "..m_deg(yaw)..", y: "..m_deg(pitch)..", z: "..m_deg(roll))
+    pitch, yaw, roll = m_deg(pitch), m_deg(yaw), m_deg(roll)
+
+	if bLOG then
+		LOG("[I] Module Improved3D.lua === CVectorQuaternionToEuler(): Got x: "..yaw..", y: "..pitch..", z: "..roll)
 	end
 
-	return m_deg(pitch), m_deg(yaw), m_deg(roll)
+	return pitch, yaw, roll
 end
 
 function I3D:EulerToQuaternion(x,y,z,bLOG)
-	if bLOG==true then
+	if bLOG then
 		LOG("[I] Module Improved3D.lua === EulerToQuaternion(): Input x: "..tostring(x)..", y: "..tostring(y)..", z: "..tostring(z))
 	end
 	--Преобразуем углы Эйлера из градусов в радианы
@@ -1370,15 +1386,17 @@ function I3D:EulerToQuaternion(x,y,z,bLOG)
 	--Соответственно правильно будет Quaternion(x,y,z,w) при нулях на входе.
 	--println(EulerToQuaternion(0,0,0))
 
-	if bLOG==true then
-		LOG("[I] Module Improved3D.lua === EulerToQuaternion(): Got Quaternion"..tostring(Quaternion(x,y,z,w)))
+    local Quat = Quaternion(x,y,z,w)
+
+	if bLOG then
+		LOG("[I] Module Improved3D.lua === EulerToQuaternion(): Got Quaternion"..tostring(Quat))
 	end
-	return Quaternion(x,y,z,w)
+	return Quat
 end
 
 function I3D:QuaternionToEuler(quaternion,bLOG)
     local x, y, z, w = quaternion.x, quaternion.y, quaternion.z, quaternion.w
-	if bLOG==true then
+	if bLOG then
 		LOG("[I] Module Improved3D.lua === QuaternionToEuler(): Input Quaternion"..tostring(Quaternion(x,y,z,w)))
 	end
 	--Вычисляем углы Эйлера (в радианах)
@@ -1398,20 +1416,22 @@ function I3D:QuaternionToEuler(quaternion,bLOG)
         local yaw = m_atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
         --Возвращаем углы Эйлера в градусах
 		--println("qqqqqqqqqqqqqqqqqqq")
-		if bLOG==true then
-			LOG("[I] Module Improved3D.lua === QuaternionToEuler(): Got x: "..m_deg(roll)..", y: "..m_deg(pitch)..", z: "..m_deg(yaw))
+        roll, pitch, yaw = m_deg(roll), m_deg(pitch), m_deg(yaw)
+		if bLOG then
+			LOG("[I] Module Improved3D.lua === QuaternionToEuler(): Got x: "..roll..", y: "..pitch..", z: "..yaw)
 		end
-		return m_deg(roll), m_deg(pitch), m_deg(yaw)
+		return roll, pitch, yaw
     end
 
     local roll = m_atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))
     local yaw = m_atan2(2 * (w * z + x * y), 1 - 2 * (z * z + y * y))
 
     --Возвращаем углы Эйлера в градусах
-	if bLOG==true then
-		LOG("[I] Module Improved3D.lua === QuaternionToEuler(): Got x: "..m_deg(roll)..", y: "..m_deg(pitch)..", z: "..m_deg(yaw))
+    roll, pitch, yaw = m_deg(roll), m_deg(pitch), m_deg(yaw)
+	if bLOG then
+		LOG("[I] Module Improved3D.lua === QuaternionToEuler(): Got x: "..roll..", y: "..pitch..", z: "..yaw)
 	end
-    return m_deg(roll), m_deg(pitch), m_deg(yaw)
+    return roll, pitch, yaw
 end
 
 function I3D:ParseCVector(CVector)
@@ -1447,10 +1467,9 @@ function I3D:IsVehicle(entity)
     if not entity then
         return nil
     end
-    local class = entity:GetClassName()
-    if class=="Vehicle" then
-        return true
-    end
+    local s, class = pcall(GetClassName, entity)
+
+    return s and class=="Vehicle"
 end
 function I3D:IsVehicleWithBelong(entity, intBelong)
     if self:IsVehicle(entity) then
@@ -1470,9 +1489,16 @@ end
 
 
 function I3D:CallEntityInZone(posVector, floatZoneSize, boolGetsIntoCamera, boolGetAllEntitiesAgain, boolAnythingInZoneORfunctionCondition, anyFunctionConditionArgument)
-	local Entities = {}
+	local Entities = self.ENTITIES_IN_ZONE
 	local posVector = posVector or self:GetCameraPos()
 	local floatZoneSize = floatZoneSize or 10
+
+    if not Entities then
+        Entities = {}
+        self.ENTITIES_IN_ZONE = Entities
+    else
+        table_clear(Entities)
+    end
 
 	if boolGetAllEntitiesAgain or not self.ENTITIES_ON_MAP then
         self.ENTITIES_ON_MAP = self:GetAllEntities(boolGetsIntoCamera)
@@ -1510,6 +1536,8 @@ function I3D:CallEntityInZone(posVector, floatZoneSize, boolGetsIntoCamera, bool
         end
 	end
 
+    self.ENTITIES_IN_ZONE = Entities
+
 	return (mode and (Entities[1] and Entities)) or Entities[1]
 end
 
@@ -1518,13 +1546,19 @@ function I3D:GetAllEntities(boolGetsIntoCamera)
         return nil
     end
 
-	self.ENTITIES_ON_MAP = {}
     local Entities = self.ENTITIES_ON_MAP
+    if not Entities then
+        Entities = {}
+        self.ENTITIES_ON_MAP = Entities
+    else
+        table_clear(Entities)
+    end
 
     local GetEntity = GetEntityByID
     local IsInCameraView = self.IsInCameraView
 
-    for i = 1, g_ObjCont:size() do
+    local n = g_ObjCont:size()
+    for i = 1, n do
         local entity = GetEntity(i)
         if entity then
             local s, e = pcall(GetPosition, entity)
@@ -1535,9 +1569,16 @@ function I3D:GetAllEntities(boolGetsIntoCamera)
     end
 
     local Size = t_getn(Entities)
+    self.ENTITIES_ON_MAP = Entities
     self.ENTITIES_ON_MAP_SIZE = Size
 
     return Entities, Size
+end
+
+function I3D:ClearAllCachedEntities()
+    self.ENTITIES_ON_MAP = nil
+    self.ENTITIES_ON_MAP_SIZE = nil
+    self.ENTITIES_IN_ZONE = nil
 end
 
 
