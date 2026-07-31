@@ -701,7 +701,7 @@ Class I3D
 		--А чтобы он мог летать с фиксированной высотой над ландшафтом:
 		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
 		--gde.y = g_ObjCont:GetHeight(gde.x, gde.z) + 11 --желаемая высота в метрах!
-		--getObj("aimteam_vehicle_0"):SetPosition(pos)
+		--getObj("aimteam_vehicle_0"):SetPosition(gde)
 
         --После "подвешивания" объекта "за шкирку" вызываю I3D:SetObjectLookAt,
         --Который через println принтит в консоль вращение "взгляда", вы можете тоже за этим понаблюдать:
@@ -1338,7 +1338,7 @@ I'll just show you the triggers that I used for this demo, but I'll add comments
 		--And so that it can fly with a fixed height above the landscape:
 		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
 		--gde.y = g_ObjCont:GetHeight(gde.x, gde.z) + 11 --desired height in meters!
-		--getObj("aimteam_vehicle_0"):SetPosition(pos)
+		--getObj("aimteam_vehicle_0"):SetPosition(gde)
 
         --After "hanging" the object "by the scruff", I call I3D:SetObjectLookAt,
         --Which prints the rotation of the "gaze" to the console via println, you can also watch this:
