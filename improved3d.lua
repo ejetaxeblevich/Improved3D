@@ -338,7 +338,8 @@ function I3D:IsCameraLookAt_Callback(pos, entity)
 	--пытаемся взаимодействовать с сущностью, захваченой лучом
 	local class = "nothing"
 	if entity then
-		class = entity:GetClassName()
+		local s, e = pcall(function() return entity:GetClassName() end)
+        class = s and e or class
 	end
 
 	--принт в консоль
@@ -418,12 +419,14 @@ local function table_clear(t)
     for i = 1, n do
         t[i] = nil
     end
+    table.setn(t, 0)
     return t
 end
 local function table_clear2(t)
     for k in pairs(t) do
         t[k] = nil
     end
+    table.setn(t, 0)
     return t
 end
 
@@ -1538,7 +1541,7 @@ function I3D:CallEntityInZone(posVector, floatZoneSize, boolGetsIntoCamera, bool
 
     self.ENTITIES_IN_ZONE = Entities
 
-	return (mode and (Entities[1] and Entities)) or Entities[1]
+	return (mode and Entities[1] and Entities) or Entities[1]
 end
 
 function I3D:GetAllEntities(boolGetsIntoCamera)
