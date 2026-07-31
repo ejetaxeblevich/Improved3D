@@ -666,7 +666,7 @@ Class I3D
 
 Я вам просто покажу триггеры, которые я использовал для этой демонстрации, но добавлю комментарии с пояснениями:
 
-```lua
+```xml
 <trigger Name="a" active="0">
     <event timeout="1" eventid="GE_TIME_PERIOD" />
 	<script>
@@ -1291,7 +1291,7 @@ Needed for the function `IsCameraLookAt`
 
 I'll just show you the triggers that I used for this demo, but I'll add comments with explanations:
 
-```lua
+```xml
 <trigger Name="a" active="0">
     <event timeout="1" eventid="GE_TIME_PERIOD" />
 	<script>
