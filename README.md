@@ -692,11 +692,17 @@ Class I3D
         --И вновь назначает ему позицию, в которой он был создан
         --Без всяких проверок, потому что это для демонстрации:
         getObj("aimteam_vehicle_0"):SetPosition(GL_gde)
+		--Чтобы объект мог двигаться в стороны, а не быть в одной точке,
+		--Можно применять к нему только определенные координаты, например Y:
+		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
+		--getObj("aimteam_vehicle_0"):SetPosition(gde.x, GL_gde.y, gde.z)
 
         --После "подвешивания" объекта "за шкирку" вызываю I3D:SetObjectLookAt,
         --Который через println принтит в консоль вращение "взгляда", вы можете тоже за этим понаблюдать:
         println(I3D:SetObjectLookAt(getObj("aimteam_vehicle_0"), GetPlayerVehicle(), false, true))
         --Если вы еще не знаете как эта функция работает, найдите ее в разделе "ФУНКЦИИ И МЕТОДЫ".
+		--Вы можете писать другие функции I3D для создания какого-то другого движения
+		--Или двигать объект импульсами через SetCustomLinearVelocity...
 
         --Обратите внимание, что я не отключаю этот триггер - он работает бесконечно!
         --Вам нужно будет придумать варианты его отключения, если необходимо...
@@ -1317,11 +1323,17 @@ I'll just show you the triggers that I used for this demo, but I'll add comments
         --And assigns it the position in which it was created again.
         --Without any checks, because it's for demonstration:
         getObj("aimteam_vehicle_0"):SetPosition(GL_gde)
+		--So that the object can move sideways instead of being at the same point,
+		--You can apply only certain coordinates to it, for example Y:
+		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
+		--getObj("aimteam_vehicle_0"):SetPosition(gde.x, GL_gde.y, gde.z)
 
         --After "hanging" the object "by the scruff", I call I3D:SetObjectLookAt,
         --Which prints the rotation of the "gaze" to the console via println, you can also watch this:
         println(I3D:SetObjectLookAt(getObj("aimteam_vehicle_0"), GetPlayerVehicle(), false, true))
         --If you don't know how this function works yet, find it in the "FUNCTIONS AND METHODS" section.
+		--You can write other I3D functions to create some other movement.
+		--Or move an object by impulses through SetCustomLinearVelocity...
 
         --Please note that I do not disable this trigger - it works indefinitely!
         --You will need to come up with options to disable it, if necessary...
