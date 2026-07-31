@@ -57,7 +57,7 @@
 </div>
 
 > [!WARNING]
-> Этот ReadMe акутален только для последней версии Improved3D!
+> Этот ReadMe актуален только для последней версии Improved3D!
 >
 > This ReadMe is relevant only for the latest version of Improved3D!
 
