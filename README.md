@@ -692,10 +692,16 @@ Class I3D
         --И вновь назначает ему позицию, в которой он был создан
         --Без всяких проверок, потому что это для демонстрации:
         getObj("aimteam_vehicle_0"):SetPosition(GL_gde)
+		
 		--Чтобы объект мог двигаться в стороны, а не быть в одной точке,
 		--Можно применять к нему только определенные координаты, например Y:
 		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
 		--getObj("aimteam_vehicle_0"):SetPosition(gde.x, GL_gde.y, gde.z)
+		
+		--А чтобы он мог летать с фиксированной высотой над ландшафтом:
+		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
+		--gde.y = g_ObjCont:GetHeight(gde.x, gde.z) + 11 --желаемая высота в метрах!
+		--getObj("aimteam_vehicle_0"):SetPosition(pos)
 
         --После "подвешивания" объекта "за шкирку" вызываю I3D:SetObjectLookAt,
         --Который через println принтит в консоль вращение "взгляда", вы можете тоже за этим понаблюдать:
@@ -1323,10 +1329,16 @@ I'll just show you the triggers that I used for this demo, but I'll add comments
         --And assigns it the position in which it was created again.
         --Without any checks, because it's for demonstration:
         getObj("aimteam_vehicle_0"):SetPosition(GL_gde)
+		
 		--So that the object can move sideways instead of being at the same point,
 		--You can apply only certain coordinates to it, for example Y:
 		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
 		--getObj("aimteam_vehicle_0"):SetPosition(gde.x, GL_gde.y, gde.z)
+
+		--And so that it can fly with a fixed height above the landscape:
+		--local gde = getObj("aimteam_vehicle_0"):GetPosition()
+		--gde.y = g_ObjCont:GetHeight(gde.x, gde.z) + 11 --desired height in meters!
+		--getObj("aimteam_vehicle_0"):SetPosition(pos)
 
         --After "hanging" the object "by the scruff", I call I3D:SetObjectLookAt,
         --Which prints the rotation of the "gaze" to the console via println, you can also watch this:
