@@ -381,6 +381,11 @@ Class I3D
 
        bool GetsIntoCamera = захватывает только объекты в поле зрения камеры, если true. */
 
+    [M] void ClearAllCachedEntities()
+    /* Очищает все закэшированные объекты, которые получили [CallEntityInZone] и [GetAllEntities]
+
+       для лечения возможных проблем при их переборе в циклах */
+
 
     /* Функции-фильтры для [I3D:CallEntityInZone()]. Вы можете аналогично добавить свои */
 
@@ -954,6 +959,11 @@ Class I3D
     /* Returns all the objects on the map that have CVector positions and their number.
 
        bool GetsIntoCamera = captures only objects in the camera's field of view, if true. */
+
+    [M] void ClearAllCachedEntities()
+    /* Clears all cached objects that have received [CallEntityInZone] and [GetAllEntities]
+
+       to treat possible problems when iterating through them */
 
 
     /* Filter-functions for [I3D:CallEntityInZone()]. You can similarly add your own */
