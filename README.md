@@ -671,7 +671,8 @@ Class I3D
     <event timeout="1" eventid="GE_TIME_PERIOD" />
 	<script>
         --Включив полет камеры, выставляю точку в пространстве, где хочу заспавнить машину/объект.
-        --Ее я записываю в глобальную переменную:
+		--Запускаю триггер в консоли.
+        --Позицию камеры я записываю в глобальную переменную:
         GL_gde = GetCameraPos()
 
         --Затем создаю в этой точке Урал:
@@ -1308,7 +1309,8 @@ I'll just show you the triggers that I used for this demo, but I'll add comments
     <event timeout="1" eventid="GE_TIME_PERIOD" />
 	<script>
         --Turning on the camera's flight, I set a point in space where I want to hover the car/object.
-        --I write it to a global variable:
+        --Ativate the trigger in the console.
+        --I record the camera position in a global variable:
         GL_gde = GetCameraPos()
 
         --Then I create the Urals at this point:
