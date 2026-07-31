@@ -695,7 +695,7 @@ Class I3D
 
         --После "подвешивания" объекта "за шкирку" вызываю I3D:SetObjectLookAt,
         --Который через println принтит в консоль вращение "взгляда", вы можете тоже за этим понаблюдать:
-        println(I3D:SetObjectLookAt(getObj("aimteam_vehicle_0"), GetPlayerVehicle(), true, true))
+        println(I3D:SetObjectLookAt(getObj("aimteam_vehicle_0"), GetPlayerVehicle(), false, true))
         --Если вы еще не знаете как эта функция работает, найдите ее в разделе "ФУНКЦИИ И МЕТОДЫ".
 
         --Обратите внимание, что я не отключаю этот триггер - он работает бесконечно!
@@ -1320,7 +1320,7 @@ I'll just show you the triggers that I used for this demo, but I'll add comments
 
         --After "hanging" the object "by the scruff", I call I3D:SetObjectLookAt,
         --Which prints the rotation of the "gaze" to the console via println, you can also watch this:
-        println(I3D:SetObjectLookAt(getObj("aimteam_vehicle_0"), GetPlayerVehicle(), true, true))
+        println(I3D:SetObjectLookAt(getObj("aimteam_vehicle_0"), GetPlayerVehicle(), false, true))
         --If you don't know how this function works yet, find it in the "FUNCTIONS AND METHODS" section.
 
         --Please note that I do not disable this trigger - it works indefinitely!
