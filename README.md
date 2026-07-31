@@ -44,6 +44,10 @@
       <td><a href="#triggerIsCameraLookAt_en">Trigger example for IsCameraLookAt</a></td>
     </tr>
     <tr>
+      <td><a href="#howToDoFlyingObject_ru">Как сделать летающий объект, как на гифке</a></td>
+      <td><a href="#howToDoFlyingObject_en">How to make a flying object like in a gif</a></td>
+    </tr>
+    <tr>
       <td><a href="#detailsAndThanks_ru">Подробности и выражение благодарности</a></td>
       <td><a href="#detailsAndThanks_en">Details and gratitude</a></td>
     </tr>
@@ -633,6 +637,7 @@ Class I3D
 <a id="triggerIsCameraLookAt_ru"></a><a href="#top">Наверх ↑</a>
 
 ## Триггер `IsCameraLookAt_VectorDrawer`
+Нужен для функции `IsCameraLookAt`
 
 ```xml
 <trigger Name="IsCameraLookAt_VectorDrawer" active="0">
@@ -655,7 +660,51 @@ Class I3D
 </trigger>
 ```
 
-<a id="detailsAndThanks_ru"></a>
+<a id="howToDoFlyingObject_ru"></a>
+
+## Как сделать летающий объект, как на гифке
+
+Я вам просто покажу триггеры, которые я использовал для этой демонстрации, но добавлю комментарии с пояснениями:
+
+```lua
+<trigger Name="a" active="0">
+    <event timeout="1" eventid="GE_TIME_PERIOD" />
+		<script>
+        --Включив полет камеры, выставляю точку в пространстве, где хочу заспавнить машину/объект.
+        --Ее я записываю в глобальную переменную:
+        GL_gde = GetCameraPos()
+
+        --Затем создаю в этой точке Урал:
+        TeamCreate("aimteam", 1004, GL_gde, Quaternion(0,0,0,1), {"Ural01"})
+
+        --Потом включаю триггер для "слежки", а этот выключаю:
+        TActivate("aim")
+        trigger:Deactivate()
+    </script>
+</trigger>
+
+<trigger Name="aim" active="0">
+    <event timeout="0" eventid="GE_TIME_PERIOD" />
+    <script>
+        --Так как я создал Урал - он падает вниз по законам физики.
+        --Для статических объектов это не нужно...
+        --После включения этого триггера, он "ловит" падающий объект,
+        --И вновь назначает ему позицию, в которой он был создан
+        --Без всяких проверок, потому что это для демонстрации:
+        getObj("aimteam_vehicle_0"):SetPosition(GL_gde)
+
+        --После "подвешивания" объекта "за шкирку" вызываю I3D:SetObjectLookAt,
+        --Который через println принтит в консоль вращение "взгляда", вы можете тоже за этим понаблюдать:
+        println(I3D:SetObjectLookAt(getObj("aimteam_vehicle_0"), GetPlayerVehicle(), true, true))
+        --Если вы еще не знаете как эта функция работает, найдите ее в разделе "ФУНКЦИИ И МЕТОДЫ".
+
+        --Обратите внимание, что я не отключаю этот триггер - он работает бесконечно!
+        --Вам нужно будет придумать варианты его отключения, если необходимо...
+    </script>
+</trigger>
+```
+
+<a id="detailsAndThanks_ru"></a><a href="#top">Наверх ↑</a>
 
 ## ПОДРОБНЕЕ
 
@@ -1213,6 +1262,7 @@ In the game, the direction is the coordinate vector `CVector`, which **sets the 
 <a id="triggerIsCameraLookAt_en"></a><a href="#top">Go up ↑</a>
 
 ## Trigger `IsCameraLookAt_VectorDrawer`
+Needed for the function `IsCameraLookAt`
 
 ```xml
 <trigger Name="IsCameraLookAt_VectorDrawer" active="0">
@@ -1235,7 +1285,51 @@ In the game, the direction is the coordinate vector `CVector`, which **sets the 
 </trigger>
 ```
 
-<a id="detailsAndThanks_en"></a>
+<a id="howToDoFlyingObject_en"></a>
+
+## How to make a flying object like in a gif
+
+I'll just show you the triggers that I used for this demo, but I'll add comments with explanations:
+
+```lua
+<trigger Name="a" active="0">
+    <event timeout="1" eventid="GE_TIME_PERIOD" />
+		<script>
+        --Turning on the camera's flight, I set a point in space where I want to hover the car/object.
+        --I write it to a global variable:
+        GL_gde = GetCameraPos()
+
+        --Then I create the Urals at this point:
+        TeamCreate("aimteam", 1004, GL_gde, Quaternion(0,0,0,1), {"Ural01"})
+
+        --Then I turn on the trigger for "surveillance", and turn off this one:
+        TActivate("aim")
+        trigger:Deactivate()
+    </script>
+</trigger>
+
+<trigger Name="aim" active="0">
+    <event timeout="0" eventid="GE_TIME_PERIOD" />
+    <script>
+        --Since I created the Ural, it falls down according to the laws of physics.
+        --This is not necessary for static objects...
+        --After turning on this trigger, it "catches" the falling object,
+        --And assigns it the position in which it was created again.
+        --Without any checks, because it's for demonstration:
+        getObj("aimteam_vehicle_0"):SetPosition(GL_gde)
+
+        --After "hanging" the object "by the scruff", I call I3D:SetObjectLookAt,
+        --Which prints the rotation of the "gaze" to the console via println, you can also watch this:
+        println(I3D:SetObjectLookAt(getObj("aimteam_vehicle_0"), GetPlayerVehicle(), true, true))
+        --If you don't know how this function works yet, find it in the "FUNCTIONS AND METHODS" section.
+
+        --Please note that I do not disable this trigger - it works indefinitely!
+        --You will need to come up with options to disable it, if necessary...
+    </script>
+</trigger>
+```
+
+<a id="detailsAndThanks_en"></a><a href="#top">Go up ↑</a>
 
 ## LEARN MORE
 
