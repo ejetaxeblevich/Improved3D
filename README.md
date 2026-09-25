@@ -12,7 +12,7 @@
 
 <a id="top"></a>
 
-![Improved3DVersion](https://img.shields.io/badge/Latest%20version-1.6-blue) ![Improved3DDownloads](https://img.shields.io/badge/Total%20downloads-25%2B-purple)
+![Improved3DStatus](https://img.shields.io/badge/Status-Released-yellow?style=for-the-badge) ![Improved3DVersion](https://img.shields.io/badge/Latest%20version-1.6-blue?style=for-the-badge) ![Improved3DDownloads](https://img.shields.io/github/downloads/ejetaxeblevich/Improved3D/total?label=Total%20downloads&color=purple&style=for-the-badge)
 
 <img src="exm_improved3d_demo.gif" alt="exm_improved3d_demo_gif" />
 
