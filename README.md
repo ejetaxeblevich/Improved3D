@@ -91,7 +91,11 @@
 И это только благодаря сухой и неинтересной математике за 6 класс учебника Виленкин Н. Я.🤣
 -->
 
-<a id="allAboutIt_ru"></a><a href="#top">Наверх ↑</a>
+<a id="allAboutIt_ru"></a>
+
+<div align="right">
+  <a href="#top">Наверх ↑</a>
+</div>
 
 ### Дисклеймер
 
@@ -176,7 +180,11 @@ end
 - ***ЗАПРЕЩАЕТСЯ*** использовать этот lua-модуль в своих модах без указания авторства. А то натравлю порчу и наколдую недельный понос 😡 
 *Шутка 💋*
 
-<a id="allFunctions_ru"></a><a href="#top">Наверх ↑</a>
+<a id="allFunctions_ru"></a>
+
+<div align="right">
+  <a href="#top">Наверх ↑</a>
+</div>
 
 ## ФУНКЦИИ И МЕТОДЫ
 
@@ -620,7 +628,11 @@ Class I3D
 }
 ```
 
-<a id="aboutCVectorAndQuaternion_ru"></a><a href="#top">Наверх ↑</a>
+<a id="aboutCVectorAndQuaternion_ru"></a>
+
+<div align="right">
+  <a href="#top">Наверх ↑</a>
+</div>
 
 ## Что такое "координаты"
 В игре координатами являются три числовых значения, которые **задают точку в пространстве** на игровом уровне и измеряются в метрах: `x` `y` `z`, где `x` - запад/восток; `y` - вверх/вниз; `z` - север/юг. Координаты отсчитываются от левого нижнего края игрового уровня (юго-запад) и зависят от его размера.
@@ -637,7 +649,11 @@ Class I3D
 
 - Вид направления: `CVector(0,0,1)` - вектор направлен на север карты; `CVector(0,1,0)` - вектор направлен вверх; `CVector(1,0,0)` - вектор направлен на восток карты.
 
-<a id="triggerIsCameraLookAt_ru"></a><a href="#top">Наверх ↑</a>
+<a id="triggerIsCameraLookAt_ru"></a>
+
+<div align="right">
+  <a href="#top">Наверх ↑</a>
+</div>
 
 ## Триггер `IsCameraLookAt_VectorDrawer`
 Нужен для функции `IsCameraLookAt`
@@ -720,7 +736,11 @@ Class I3D
 </trigger>
 ```
 
-<a id="detailsAndThanks_ru"></a><a href="#top">Наверх ↑</a>
+<a id="detailsAndThanks_ru"></a>
+
+<div align="right">
+  <a href="#top">Наверх ↑</a>
+</div>
 
 ## ПОДРОБНЕЕ
 
@@ -740,7 +760,9 @@ Class I3D
 - ***Gnome627*** за функцию `I3D:p()`!
 - ***Varisane*** за обратную связь!
 
-<a href="#top">Наверх ↑</a>
+<div align="right">
+  <a href="#top">Наверх ↑</a>
+</div>
 
 ----
 
@@ -767,7 +789,11 @@ You will be able to more **flexibly calculate coordinates and rotation, convenie
 - A set of commands for convenient calculation of coordinates, rotation, vectors in space for your scripts - save time!
 - Other small and useful scripts!
 
-<a id="allAboutIt_en"></a><a href="#top">Go up ↑</a>
+<a id="allAboutIt_en"></a>
+
+<div align="right">
+  <a href="#top">Go up ↑</a>
+</div>
 
 ### Disclaimer
 
@@ -852,7 +878,11 @@ end
 - ***FORBIDDEN*** to use this lua module in your mods without attribution. Otherwise, I'll set off a spell and conjure up a week's diarrhea. 
 *A joke 💋*
 
-<a id="allFunctions_en"></a><a href="#top">Go up ↑</a>
+<a id="allFunctions_en"></a>
+
+<div align="right">
+  <a href="#top">Go up ↑</a>
+</div>
 
 ## FUNCTIONS AND METHODS
 
@@ -1258,7 +1288,11 @@ Class I3D
 }
 ```
 
-<a id="aboutCVectorAndQuaternion_en"></a><a href="#top">Go up ↑</a>
+<a id="aboutCVectorAndQuaternion_en"></a>
+
+<div align="right">
+  <a href="#top">Go up ↑</a>
+</div>
 
 ## What are "coordinates"
 In the game coordinates are three numeric values that **define a point in space** at the game level and are measured in meters: `x` `y` `z`, where `x` is west/east; `y` is up/down; `z` - north/south. The coordinates are calculated from the lower left edge of the game level (southwest) and depend on its size.
@@ -1275,7 +1309,11 @@ In the game, the direction is the coordinate vector `CVector`, which **sets the 
 
 - Type of direction: `CVector(0,0,1)` - vector is directed to the north of the map; `CVector(0,1,0)` - vector is directed upward; `CVector(1,0,0)` - vector is directed to the east of the map.
 
-<a id="triggerIsCameraLookAt_en"></a><a href="#top">Go up ↑</a>
+<a id="triggerIsCameraLookAt_en"></a>
+
+<div align="right">
+  <a href="#top">Go up ↑</a>
+</div>
 
 ## Trigger `IsCameraLookAt_VectorDrawer`
 Needed for the function `IsCameraLookAt`
@@ -1358,7 +1396,11 @@ I'll just show you the triggers that I used for this demo, but I'll add comments
 </trigger>
 ```
 
-<a id="detailsAndThanks_en"></a><a href="#top">Go up ↑</a>
+<a id="detailsAndThanks_en"></a>
+
+<div align="right">
+  <a href="#top">Go up ↑</a>
+</div>
 
 ## LEARN MORE
 
@@ -1378,4 +1420,6 @@ You can read about game maps in *[tutorial article on DeusWiki](https://deuswiki
 - ***Gnome627*** for function `I3D:p()`!
 - ***Varisane*** for feedback!
 
-<a href="#top">Go up ↑</a>
+<div align="right">
+  <a href="#top">Go up ↑</a>
+</div>
