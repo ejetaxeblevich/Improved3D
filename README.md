@@ -4,17 +4,24 @@
 
 ***ПРОСТРАНСТВЕННЫЙ LUA-МОДУЛЬ,*** *написанный специально для игры [Ex Machina](https://store.steampowered.com/app/285500/Hard_Truck_Apocalypse__Ex_Machina/)*
 
-
 ***SPATIAL LUA-MODULE,*** *written specifically for the game [Hard Truck Apocalypse](https://store.steampowered.com/app/285500/Hard_Truck_Apocalypse__Ex_Machina/)*
 
 **Lua 5.0**
 
+<a href="https://github.com/ejetaxeblevich/Improved3D/releases"><img src="https://img.shields.io/badge/Статус-Вышел-yellow?style=for-the-badge" alt="Improved3DStatus"/></a> 
+<a href="https://github.com/ejetaxeblevich/Improved3D/releases/tag/260731b"><img src="https://img.shields.io/badge/Последняя%20версия-1.6-blue?style=for-the-badge" alt="Improved3DVersion"/></a> 
+<a href="https://tooomm.github.io/github-release-stats"><img src="https://img.shields.io/github/downloads/ejetaxeblevich/Improved3D/total?label=%D0%92%D1%81%D0%B5%D0%B3%D0%BE%20%D1%81%D0%BA%D0%B0%D1%87%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D0%B9&amp;color=purple&amp;style=for-the-badge" alt="Improved3DDownloads"/></a> 
+
+<img src="exm_improved3d_demo.gif" alt="exm_improved3d_demo_gif" />
+
+***
 
 <a id="top"></a>
 
-![Improved3DStatus](https://img.shields.io/badge/Status-Released-yellow?style=for-the-badge) ![Improved3DVersion](https://img.shields.io/badge/Latest%20version-1.6-blue?style=for-the-badge) ![Improved3DDownloads](https://img.shields.io/github/downloads/ejetaxeblevich/Improved3D/total?label=Total%20downloads&color=purple&style=for-the-badge)
-
-<img src="exm_improved3d_demo.gif" alt="exm_improved3d_demo_gif" />
+<div>
+  <h3>Обсуждение и техподдержка / Discussion and support</h3>
+  <a href="https://forum.deuswiki.com/t/lua-moduli-sborniki-gotovyh-skriptov/3161/3?u=axeble"><img src="https://img.shields.io/badge/DeusWiki%20Forum-333333?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODYgMTg2Ij48cGF0aCBmaWxsPSIjRkZBNTAwIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0gNzcgNCBMIDU5IDkgTCA0NyAxNSBMIDMwIDI4IEwgMTkgNDEgTCAxMCA1NyBMIDUgNzIgTCAzIDg1IEwgNCAxMDggTCA5IDEyNiBMIDE3IDE0MSBMIDIyIDE0OCBMIDM4IDE2NCBMIDUzIDE3MyBMIDY5IDE3OSBMIDc5IDE4MSBMIDEwNiAxODEgTCAxMjUgMTc2IEwgMTM5IDE2OSBMIDE0OSAxNjIgTCAxNjUgMTQ1IEwgMTc1IDEyNyBMIDE4MCAxMTEgTCAxODEgNzkgTCAxNzggNjYgTCAxNjkgNDYgTCAxNjEgMzUgTCAxNDUgMjAgTCAxMjcgMTAgTCAxMTEgNSBMIDk4IDMgWiBNIDE0MCAxNDMgTCAxMjUgMTU1IEwgMTE0IDE2MCBMIDEwMCAxNjMgTCA4NSAxNjMgTCA3NCAxNjEgTCA1OCAxNTQgTCA0OCAxNDcgTCAzOCAxMzcgTCAzNiAxMzIgTCA5OSAxMzEgTCAxMTMgMTExIEwgMTE3IDEwOCBMIDEzNiAxMzUgWiBNIDU0IDcyIEwgOTEgNzIgTCAxMDMgOTIgTCA4OSAxMTQgTCA1MyAxMTMgTCA1NCAxMDAgTCA4NyAxMDAgTCA4NyA4NSBMIDU0IDg1IFogTSAzMiA2MSBMIDMzIDExMyBMIDI3IDExNCBMIDIzIDEwMyBMIDIzIDg0IEwgMjcgNjggTCAzMCA2MiBaIE0gMTUxIDU4IEwgMTUzIDU5IEwgMTU3IDY3IEwgMTYxIDgxIEwgMTYxIDEwNSBMIDE1NyAxMTkgTCAxNTIgMTI3IEwgMTMwIDkzIFogTSA1MiAzNyBMIDU4IDMyIEwgNzQgMjUgTCA4MyAyMyBMIDEwMSAyMyBMIDExOSAyOCBMIDEyNyAzMiBMIDEzOCA0MCBMIDEzOSA0MyBMIDEyMiA2OSBMIDExNiA3NSBMIDEwMCA1NCBMIDUzIDU0IFoiLz48L3N2Zz4%3D" width="250" height="36" alt="Deuswiki topic"/></a>
+</div>
 
 ***
 
@@ -57,14 +64,9 @@
   </tbody>
 </table>
 
-</div>
-
-> [!WARNING]
-> Этот ReadMe актуален только для последней версии Improved3D!
->
-> This ReadMe is relevant only for the latest version of Improved3D!
-
 ***
+
+</div>
 
 <a id="wtf_ru"></a>
 
