@@ -197,7 +197,9 @@ end
 > 
 > Для настройки работы `IsCameraLookAt` можно и нужно редактировать функцию `IsCameraLookAt_Callback` раздела `USER EDITABLE FUNCTIONS` внутри файла. Стоит также ознакомиться с триггером `IsCameraLookAt_VectorDrawer`.
 
-> [!TIP]
+<details>
+<summary><h3>Развернуть/свернуть список функций и методов</h3></summary>
+
 > Вы можете скроллить код ниже вправо и влево! Наведите курсор на полотно и колесиком мыши с помощью `shift` двигайте его!
 
 ```c
@@ -630,6 +632,8 @@ Class I3D
 }
 ```
 
+</details>
+
 <a id="aboutCVectorAndQuaternion_ru"></a>
 
 <div align="right">
@@ -895,7 +899,9 @@ All the public functions of this module are collected here. Each function has a 
 > 
 > To configure the operation of `IsCameraLookAt`, you can and should edit the `IsCameraLookAt_Callback` function of the `USER EDITABLE FUNCTIONS` section inside the file. It is also worth familiarizing yourself with the `IsCameraLookAt_VectorDrawer` trigger.
 
-> [!TIP]
+<details>
+<summary><h3>Expand/collapse the list of functions and methods</h3></summary>
+
 > You can scroll the code below to the right and left! Hover the cursor over the canvas and use the mouse wheel to move it using `shift`!
 
 ```c
@@ -1289,6 +1295,8 @@ Class I3D
            roll  = X */
 }
 ```
+
+</details>
 
 <a id="aboutCVectorAndQuaternion_en"></a>
 
