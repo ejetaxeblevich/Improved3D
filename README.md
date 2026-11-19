@@ -1,6 +1,6 @@
 <div align="center">
 
-# Improved3D.lua
+# Improved3D
 
 ***ПРОСТРАНСТВЕННЫЙ LUA-МОДУЛЬ,*** *написанный специально для игры [Ex Machina](https://store.steampowered.com/app/285500/Hard_Truck_Apocalypse__Ex_Machina/)*
 
